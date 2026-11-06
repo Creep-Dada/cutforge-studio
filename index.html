@@ -7,100 +7,260 @@
 <title>CutForge Studio</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
+/* Colour language: a neutral, almost black stage and one signature – the chromatic split (RGB shift):
+   a red and a turquoise ghost a pixel or two beside the shape, like a lens that does not quite align. */
 :root {
-  --bg: #0e0f11; --bg2: #16181b; --bg3: #1d2024; --text: #f2f2f0; --hint: #8b8f96; --line: rgba(255,255,255,.08);
-  --accent: #f2f2f0; --on-accent: #0e0f11; --danger: #e5484d; --radius: 16px;
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+  --bg: #08090b; --bg2: rgba(255,255,255,.045); --bg3: rgba(255,255,255,.085); --solid2: #121418; --text: #f4f4f2; --hint: #8a8f98;
+  --line: rgba(255,255,255,.085); --nav: rgba(18,20,24,.84);
+  --red: #ff2d55; --cyan: #18e4d6; --red-a: rgba(255,45,85,.28); --cyan-a: rgba(24,228,214,.16); --cyan-line: rgba(24,228,214,.38);
+  --aur-r: rgba(255,45,85,.20); --aur-c: rgba(24,228,214,.15); --tint-r: rgba(255,45,85,.075); --tint-c: rgba(24,228,214,.06);
+  --split: -1.5px 0 0 var(--red), 1.5px 0 0 var(--cyan); --split-sm: -1px 0 0 var(--red), 1px 0 0 var(--cyan);
+  --glow: 0 0 22px rgba(255,45,85,.18), 0 0 22px rgba(24,228,214,.14);
+  --radius: 18px; --spring: cubic-bezier(.16, 1, .3, 1); --ease: cubic-bezier(.2, .8, .2, 1);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
 }
 @media (prefers-color-scheme: light) {
-  :root:not([data-tg]) { --bg: #f6f6f4; --bg2: #ffffff; --bg3: #efefec; --text: #141517; --hint: #6c7078; --line: rgba(0,0,0,.08);
-    --accent: #141517; --on-accent: #ffffff; }
+  :root:not([data-tg]) { --bg: #f5f5f2; --bg2: rgba(0,0,0,.035); --bg3: rgba(0,0,0,.065); --solid2: #ffffff; --text: #111214; --hint: #6a6f78;
+    --line: rgba(0,0,0,.08); --nav: rgba(255,255,255,.86); --red: #e8164a; --cyan: #06a196; --red-a: rgba(232,22,74,.16); --cyan-a: rgba(6,161,150,.12);
+    --cyan-line: rgba(6,161,150,.4); --aur-r: rgba(232,22,74,.10); --aur-c: rgba(6,161,150,.10); --tint-r: rgba(232,22,74,.05); --tint-c: rgba(6,161,150,.05); }
 }
+:root[data-light] { --red: #e8164a; --cyan: #06a196; --red-a: rgba(232,22,74,.16); --cyan-a: rgba(6,161,150,.12); --cyan-line: rgba(6,161,150,.4);
+  --aur-r: rgba(232,22,74,.10); --aur-c: rgba(6,161,150,.10); --tint-r: rgba(232,22,74,.05); --tint-c: rgba(6,161,150,.05); }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
-body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.42 var(--font); -webkit-font-smoothing: antialiased; }
+body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); overflow-x: hidden; }
 button, input, textarea, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
-.wrap { max-width: 640px; margin: 0 auto; padding: 18px 16px 8px; }
-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
-.brand { font-weight: 650; letter-spacing: .02em; font-size: 17px; }
-.ver { color: var(--hint); font-size: 12px; }
-.search { width: 100%; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg2); padding: 0 14px 0 38px;
-  outline: none; }
-.search-wrap { position: relative; margin-bottom: 18px; }
-.search-wrap svg { position: absolute; left: 12px; top: 11px; color: var(--hint); }
-h2 { font-size: 12px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--hint); margin: 22px 2px 10px; }
+
+/* ---------- living background: two soft colour fields drifting (red / turquoise) ---------- */
+.aurora { position: fixed; left: 0; right: 0; top: 0; height: 80vh; pointer-events: none; z-index: 0; overflow: hidden; }
+.aurora i { position: absolute; width: 95vw; height: 95vw; max-width: 640px; max-height: 640px; border-radius: 50%; will-change: transform; }
+.aurora i:first-child { background: radial-gradient(closest-side, var(--aur-r), transparent); left: -22vw; top: -30vw; animation: drift1 19s ease-in-out infinite alternate; }
+.aurora i:last-child { background: radial-gradient(closest-side, var(--aur-c), transparent); right: -28vw; top: -8vw; animation: drift2 23s ease-in-out infinite alternate; }
+@keyframes drift1 { to { transform: translate(26vw, 10vh) scale(1.18); } }
+@keyframes drift2 { to { transform: translate(-24vw, 6vh) scale(.88); } }
+.wrap { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 20px 16px 8px; }
+#main { transform-origin: 50% 0; transition: transform .55s var(--spring), opacity .45s var(--ease); }
+body.in-sheet #main { transform: scale(.94); opacity: .4; }
+
+/* ---------- header: the wordmark in RGB split, a short glitch now and then ---------- */
+header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; animation: down .8s var(--spring) backwards; }
+.brand { position: relative; font-weight: 800; letter-spacing: -.01em; font-size: 22px; text-shadow: var(--split); }
+.brand::before, .brand::after { content: attr(data-text); position: absolute; inset: 0; pointer-events: none; opacity: 0; text-shadow: none; }
+.brand::before { color: var(--red); animation: glitch1 8s infinite steps(1); }
+.brand::after { color: var(--cyan); animation: glitch2 8s infinite steps(1); }
+.brand.zap::before { animation: zap1 .42s steps(1); }
+.brand.zap::after { animation: zap2 .42s steps(1); }
+@keyframes glitch1 { 0%, 92%, 100% { opacity: 0; transform: none; clip-path: none; }
+  93% { opacity: .9; transform: translate(-3px, -1px); clip-path: inset(10% 0 55% 0); }
+  94.5% { opacity: .9; transform: translate(2px, 1px); clip-path: inset(60% 0 8% 0); }
+  96% { opacity: .8; transform: translate(-2px, 0); clip-path: inset(30% 0 40% 0); } }
+@keyframes glitch2 { 0%, 92%, 100% { opacity: 0; transform: none; clip-path: none; }
+  93.5% { opacity: .9; transform: translate(3px, 1px); clip-path: inset(50% 0 20% 0); }
+  95% { opacity: .9; transform: translate(-2px, -1px); clip-path: inset(5% 0 70% 0); }
+  96.5% { opacity: .8; transform: translate(2px, 0); clip-path: inset(70% 0 5% 0); } }
+@keyframes zap1 { 0% { opacity: .9; transform: translate(-4px, 0); clip-path: inset(15% 0 50% 0); }
+  35% { opacity: .9; transform: translate(3px, 1px); clip-path: inset(55% 0 10% 0); } 70%, 100% { opacity: 0; } }
+@keyframes zap2 { 0% { opacity: .9; transform: translate(4px, 0); clip-path: inset(60% 0 5% 0); }
+  35% { opacity: .9; transform: translate(-3px, -1px); clip-path: inset(5% 0 65% 0); } 70%, 100% { opacity: 0; } }
+.ver { color: var(--hint); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg2); }
+.live { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); margin-left: auto; animation: beat 2.6s infinite; }
+.live.off { background: var(--hint); animation: none; opacity: .5; }
+@keyframes beat { 0% { box-shadow: 0 0 0 0 var(--cyan-line); } 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+/* ---------- search ---------- */
+.search-wrap { position: relative; margin-bottom: 8px; animation: down .8s .06s var(--spring) backwards; }
+.search { width: 100%; height: 44px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg2); padding: 0 14px 0 40px; outline: none;
+  transition: border-color .25s, box-shadow .3s; }
+.search:focus { border-color: transparent; box-shadow: var(--split), var(--glow); }
+.search-wrap svg { position: absolute; left: 13px; top: 13px; color: var(--hint); transition: color .3s, transform .45s var(--spring); }
+.search-wrap:focus-within svg { color: var(--text); transform: scale(1.1) rotate(-8deg); }
+
+/* ---------- sections, tiles, rows ---------- */
+h2 { font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--hint); margin: 26px 2px 12px;
+  display: flex; align-items: center; gap: 9px; }
+h2::before { content: ""; width: 14px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--red), var(--cyan)); }
+.ptitle { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin: 2px 2px 0; text-shadow: var(--split-sm); }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.tile { text-align: left; border: 1px solid var(--line); background: var(--bg2); border-radius: var(--radius); padding: 14px; min-height: 108px;
-  display: flex; flex-direction: column; gap: 6px; transition: transform .12s ease, border-color .12s ease; }
-.tile:active { transform: scale(.98); }
-.tile .t { font-weight: 600; font-size: 15px; }
+.tile, .row { position: relative; overflow: hidden; isolation: isolate; text-align: left; border: 1px solid var(--line); background: var(--bg2);
+  border-radius: var(--radius); transition: transform .4s var(--spring), border-color .3s, box-shadow .3s; }
+.tile { padding: 14px 15px 15px; min-height: 128px; display: flex; flex-direction: column; gap: 6px;
+  background: radial-gradient(130% 90% at 0 0, var(--tint, transparent), transparent 62%), var(--bg2); }
+.grid .tile:nth-child(4n+1), .grid .tile:nth-child(4n+4) { --tint: var(--tint-r); }
+.grid .tile:nth-child(4n+2), .grid .tile:nth-child(4n+3) { --tint: var(--tint-c); }
+.ic { flex: none; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--red-a), var(--cyan-a)); box-shadow: inset 0 0 0 1px var(--line); transition: transform .5s var(--spring), box-shadow .3s; }
+.tile:active .ic, .row:active .ic { transform: scale(1.1) rotate(-6deg); box-shadow: inset 0 0 0 1px var(--line), var(--glow); }
+.tile .t { font-weight: 650; font-size: 15.5px; letter-spacing: -.01em; }
 .tile .d { color: var(--hint); font-size: 12.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.tile svg { color: var(--text); opacity: .85; }
-.row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px; border: 1px solid var(--line);
-  background: var(--bg2); border-radius: var(--radius); margin-bottom: 8px; }
-.row .t { font-weight: 600; }
+.ic svg { color: var(--text); filter: drop-shadow(-1px 0 var(--red)) drop-shadow(1px 0 var(--cyan)); transition: filter .3s; }
+.tile:active, .row:active { transform: scale(.965); }
+.tile:active .ic svg, .row:active .ic svg { filter: drop-shadow(-2.5px 0 var(--red)) drop-shadow(2.5px 0 var(--cyan)); }
+@media (hover: hover) {
+  .tile:hover, .row:hover { border-color: var(--cyan-line); box-shadow: var(--glow); transform: translateY(-2px); }
+  .tile:hover .ic svg, .row:hover .ic svg { filter: drop-shadow(-2px 0 var(--red)) drop-shadow(2px 0 var(--cyan)); }
+}
+/* the touch light: follows the finger, red into turquoise */
+.tile::after, .row::after, .seg button::after, .primary::after, .ghost::after { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; pointer-events: none;
+  background: radial-gradient(170px circle at var(--x, 50%) var(--y, 50%), var(--red-a), var(--cyan-a) 45%, transparent 70%); transition: opacity .6s; }
+.lit::after { opacity: 1; transition: opacity .05s; }
+.row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 15px; margin-bottom: 9px; }
+.row .t { font-weight: 650; }
 .row .d { color: var(--hint); font-size: 13px; }
 .row .grow { flex: 1; min-width: 0; }
-.chev { color: var(--hint); }
-.fav { margin-left: auto; color: var(--hint); background: none; border: 0; padding: 4px; }
-.fav.on { color: var(--text); }
-nav { position: fixed; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(18px);
-  border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); display: flex; justify-content: space-around; z-index: 5; }
-nav button { background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--hint);
-  padding: 6px 14px; border-radius: 12px; }
+.row .ic { margin: 0; }
+.row { background: radial-gradient(90% 160% at 0 50%, var(--tint, transparent), transparent 60%), var(--bg2); }
+.row:nth-child(odd) { --tint: var(--tint-r); }
+.row:nth-child(even) { --tint: var(--tint-c); }
+.chev { color: var(--hint); transition: transform .4s var(--spring), color .3s; }
+.row:active .chev, .row.lit .chev { transform: translateX(4px); color: var(--cyan); }
+.fav { margin-left: auto; color: var(--hint); background: none; border: 0; padding: 4px; transition: color .3s; }
+.fav.on { color: var(--red); filter: drop-shadow(0 0 8px var(--red-a)); }
+.fav.just { animation: star .7s var(--spring); }
+@keyframes star { 0% { transform: scale(.5) rotate(-40deg); } 55% { transform: scale(1.3) rotate(8deg); } 100% { transform: none; } }
+.empty { color: var(--hint); text-align: center; padding: 48px 0; animation: rise .5s var(--spring) backwards; }
+
+/* ---------- tab bar with a gliding indicator ---------- */
+nav { position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); max-width: 620px; margin: 0 auto; height: 62px;
+  background: var(--nav); -webkit-backdrop-filter: blur(22px) saturate(1.4); backdrop-filter: blur(22px) saturate(1.4); border: 1px solid var(--line);
+  border-radius: 22px; display: flex; z-index: 5; box-shadow: 0 10px 40px rgba(0,0,0,.3);
+  animation: up .8s .12s var(--spring) backwards; transition: transform .5s var(--spring), opacity .35s; }
+body.in-sheet nav { transform: translateY(150%); opacity: 0; }
+nav .pill { position: absolute; top: 6px; bottom: 6px; left: 0; width: 0; border-radius: 16px; background: var(--bg3); pointer-events: none;
+  transition: transform .55s var(--spring), width .55s var(--spring); }
+nav .pill::after { content: ""; position: absolute; left: 32%; right: 32%; bottom: 4px; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--red), var(--cyan)); box-shadow: 0 0 10px var(--cyan-a); }
+nav button { position: relative; z-index: 1; flex: 1; background: none; border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; font-size: 11px; color: var(--hint); transition: color .35s; }
+nav button svg { transition: transform .55s var(--spring), filter .35s; }
 nav button.on { color: var(--text); }
-.sheet { position: fixed; inset: 0; background: var(--bg); z-index: 10; overflow-y: auto; transform: translateY(100%);
-  transition: transform .28s cubic-bezier(.2,.8,.2,1); padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-.sheet.open { transform: none; }
-.sheet .wrap { padding-top: 14px; }
-.sheet-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
-.sheet-head h1 { font-size: 22px; font-weight: 650; margin: 0; letter-spacing: -.01em; flex: 1; }
-.close { background: var(--bg3); border: 0; border-radius: 999px; width: 32px; height: 32px; display: grid; place-items: center; }
-.lead { color: var(--hint); margin: 4px 0 6px; }
-.needs { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line);
-  background: var(--bg2); margin: 8px 0 4px; }
-.field { margin-top: 18px; }
-.label { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--hint); margin: 0 2px 8px; display: flex; gap: 8px; }
+nav button.on svg { transform: translateY(-2px) scale(1.08); filter: drop-shadow(-1px 0 var(--red)) drop-shadow(1px 0 var(--cyan)); }
+nav button:active svg { transform: scale(.82); }
+
+/* ---------- sheet: springs up as a card, the page behind steps back ---------- */
+.sheet { position: fixed; left: 0; right: 0; top: 10px; bottom: 0; z-index: 10; overflow-y: auto; transform: translateY(105%); background: var(--bg);
+  transition: transform .6s var(--spring); padding-bottom: calc(100px + env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0;
+  box-shadow: 0 -1px 0 var(--line), 0 -20px 60px rgba(0,0,0,.35); overscroll-behavior: contain; }
+.sheet.open { transform: translateY(0); }
+.sheet.dragging { transition: none; }
+.grip { width: 42px; height: 5px; border-radius: 3px; background: var(--bg3); margin: 0 auto; padding: 0; position: relative; touch-action: none; }
+.grip::before { content: ""; position: absolute; inset: -10px -60px; }
+.sheet > .grip { margin-top: 8px; }
+.sheet .wrap { padding-top: 12px; }
+.sheet-head { display: flex; align-items: center; gap: 12px; margin-bottom: 2px; touch-action: none; }
+.sheet-head h1 { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -.02em; flex: 1; text-shadow: var(--split-sm); }
+.close { background: var(--bg3); border: 0; border-radius: 999px; width: 34px; height: 34px; display: grid; place-items: center; transition: transform .45s var(--spring); }
+.close:active { transform: rotate(90deg) scale(.88); }
+.lead { color: var(--hint); margin: 4px 2px 8px; }
+.needs { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px 13px; border-radius: 999px; margin: 8px 0 4px;
+  background: linear-gradient(var(--bg), var(--bg)) padding-box, linear-gradient(90deg, var(--red), var(--cyan)) border-box; border: 1px solid transparent; }
+
+/* ---------- form controls ---------- */
+.field { margin-top: 20px; }
+.label { font-size: 11.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--hint); margin: 0 2px 9px; display: flex; gap: 8px; }
 .label .aside { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 400; }
-.seg { display: flex; flex-wrap: wrap; gap: 6px; }
-.seg button { border: 1px solid var(--line); background: var(--bg2); border-radius: 999px; padding: 8px 14px; font-size: 14px; }
-.seg button.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.seg button:disabled { opacity: .35; }
-.seg button small { opacity: .7; margin-left: 4px; }
-textarea, .input, select { width: 100%; border: 1px solid var(--line); background: var(--bg2); border-radius: 12px; padding: 12px 14px; outline: none; }
-textarea { min-height: 88px; resize: vertical; }
-select { appearance: none; height: 46px; padding: 0 14px; background-image: linear-gradient(45deg, transparent 50%, var(--hint) 50%),
-  linear-gradient(135deg, var(--hint) 50%, transparent 50%); background-position: calc(100% - 20px) 20px, calc(100% - 15px) 20px;
+.seg { display: flex; flex-wrap: wrap; gap: 7px; }
+.seg button { position: relative; overflow: hidden; isolation: isolate; border: 1px solid var(--line); background: var(--bg2); border-radius: 999px; padding: 9px 15px;
+  font-size: 14px; transition: background .35s var(--ease), color .35s, border-color .35s, box-shadow .35s, transform .4s var(--spring); }
+.seg button:active { transform: scale(.92); }
+.seg button.on { background: var(--text); color: var(--bg); border-color: transparent; box-shadow: var(--split), var(--glow); }
+.seg button.just { animation: pop .6s var(--spring); }
+@keyframes pop { 0% { transform: scale(.88); box-shadow: -5px 0 0 var(--red), 5px 0 0 var(--cyan); } 100% { transform: none; } }
+.seg button:disabled { opacity: .3; }
+.seg button small { opacity: .65; margin-left: 4px; }
+textarea, .input, select { width: 100%; border: 1px solid var(--line); background: var(--bg2); border-radius: 14px; padding: 13px 15px; outline: none;
+  transition: border-color .25s, box-shadow .3s; }
+textarea:focus, .input:focus, select:focus { border-color: transparent; box-shadow: var(--split), var(--glow); }
+select.just { animation: flash .7s var(--ease); }
+@keyframes flash { 0% { box-shadow: -4px 0 0 var(--red), 4px 0 0 var(--cyan), var(--glow); } 100% { box-shadow: none; } }
+textarea { min-height: 92px; resize: vertical; }
+select { appearance: none; -webkit-appearance: none; height: 48px; padding: 0 15px; background-image: linear-gradient(45deg, transparent 50%, var(--hint) 50%),
+  linear-gradient(135deg, var(--hint) 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 15px) 21px;
   background-size: 5px 5px; background-repeat: no-repeat; }
-.note { color: var(--hint); font-size: 12.5px; margin: 7px 2px 0; }
-.switch { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg2); }
-.switch input { appearance: none; width: 44px; height: 26px; border-radius: 999px; background: var(--bg3); position: relative; transition: background .15s; margin: 0; }
-.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--hint); transition: transform .15s, background .15s; }
-.switch input:checked { background: var(--accent); }
-.switch input:checked::after { transform: translateX(18px); background: var(--on-accent); }
+select option { background: var(--solid2); color: var(--text); }
+.note { color: var(--hint); font-size: 12.5px; margin: 8px 2px 0; }
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg2); }
+.switch input { appearance: none; -webkit-appearance: none; flex: none; width: 48px; height: 28px; border-radius: 999px; background: var(--bg3); position: relative; margin: 0;
+  transition: box-shadow .4s; }
+.switch input::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--red), var(--cyan));
+  opacity: 0; transition: opacity .4s var(--ease); }
+.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--text);
+  transition: transform .55s var(--spring); box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.switch input:checked { box-shadow: var(--glow); }
+.switch input:checked::before { opacity: 1; }
+.switch input:checked::after { transform: translateX(20px); background: #fff; }
+.switch input.just::before { animation: fadein .45s var(--ease) backwards; }
+.switch input.just:checked::after { animation: knob-on .6s var(--spring); }
+.switch input.just:not(:checked)::after { animation: knob-off .6s var(--spring); }
+@keyframes fadein { from { opacity: 0; } }
+@keyframes knob-on { from { transform: translateX(0) scale(.9); } }
+@keyframes knob-off { from { transform: translateX(20px) scale(.9); } }
 .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; background: var(--bg2); }
-.stepper button { background: none; border: 0; width: 40px; height: 36px; font-size: 18px; }
-.stepper span { min-width: 28px; text-align: center; font-weight: 600; }
-details { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
-summary { color: var(--hint); font-size: 13px; cursor: pointer; list-style: none; }
+.stepper button { background: none; border: 0; width: 44px; height: 40px; font-size: 19px; transition: transform .35s var(--spring); }
+.stepper button:active { transform: scale(.78); }
+.stepper span { min-width: 30px; text-align: center; font-weight: 700; display: inline-block; }
+.stepper span.up { animation: num-up .5s var(--spring); }
+.stepper span.down { animation: num-down .5s var(--spring); }
+@keyframes num-up { 0% { transform: translateY(10px) scale(1.25); opacity: 0; text-shadow: var(--split); } 100% { transform: none; opacity: 1; } }
+@keyframes num-down { 0% { transform: translateY(-10px) scale(1.25); opacity: 0; text-shadow: var(--split); } 100% { transform: none; opacity: 1; } }
+details { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px; }
+summary { color: var(--hint); font-size: 13px; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 9px; }
+summary::before { content: "+"; flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--bg3);
+  font-size: 15px; transition: transform .5s var(--spring), background .3s, color .3s; }
+details[open] summary::before { transform: rotate(135deg); background: var(--text); color: var(--bg); }
 summary::-webkit-details-marker { display: none; }
-.summary { margin-top: 22px; padding: 14px; border-radius: var(--radius); background: var(--bg2); border: 1px solid var(--line); font-size: 13.5px; }
-.summary b { font-weight: 600; }
-.primary { position: fixed; left: 16px; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom)); height: 50px; border-radius: 14px; border: 0;
-  background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 16px; z-index: 11; max-width: 608px; margin: 0 auto; }
-body:not(.in-sheet) .primary { bottom: calc(78px + env(safe-area-inset-bottom)); }
-body.has-send:not(.in-sheet) { padding-bottom: calc(146px + env(safe-area-inset-bottom)); }
-.code { font: 12.5px/1.45 ui-monospace, "SF Mono", Menlo, Consolas, monospace; word-break: break-all; padding: 14px; background: var(--bg2);
-  border: 1px solid var(--line); border-radius: 12px; user-select: all; }
-.ghost { background: none; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; margin-top: 10px; }
+.summary { margin-top: 24px; padding: 15px; border-radius: var(--radius); font-size: 13.5px;
+  background: linear-gradient(var(--solid2), var(--solid2)) padding-box, linear-gradient(120deg, var(--red-a), var(--cyan-line)) border-box; border: 1px solid transparent; }
+.summary b { font-weight: 650; }
+.summary.just { animation: sum .6s var(--ease); }
+@keyframes sum { 0% { box-shadow: var(--glow); transform: scale(.985); } 100% { box-shadow: none; transform: none; } }
+
+/* ---------- primary button (browser; inside Telegram the native MainButton) ---------- */
+.primary { position: fixed; left: 16px; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom)); height: 54px; border-radius: 18px; border: 0;
+  overflow: hidden; isolation: isolate; color: #fff; font-weight: 700; font-size: 16px; letter-spacing: .01em; z-index: 11; max-width: 608px; margin: 0 auto;
+  background: linear-gradient(110deg, var(--red), #b23ad8 50%, var(--cyan)); background-size: 220% 100%;
+  animation: btn-in .6s var(--spring) backwards, flow 7s ease-in-out infinite alternate;
+  box-shadow: 0 10px 28px rgba(255,45,85,.3), 0 10px 28px rgba(24,228,214,.18); transition: transform .4s var(--spring), filter .3s; }
+.primary::before { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.32) 50%, transparent 65%);
+  transform: translateX(-120%); animation: shine 4.2s ease-in-out infinite; }
+.primary:active { transform: scale(.97); }
+.primary:disabled { filter: grayscale(.85) brightness(.75); }
+.primary:disabled::before { display: none; }
+@keyframes flow { to { background-position: 100% 0; } }
+@keyframes shine { 0%, 62% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+@keyframes btn-in { from { transform: translateY(24px) scale(.96); opacity: 0; } }
+body:not(.in-sheet) .primary { bottom: calc(84px + env(safe-area-inset-bottom)); }
+body.has-send:not(.in-sheet) { padding-bottom: calc(154px + env(safe-area-inset-bottom)); }
+.code { font: 12.5px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; word-break: break-all; padding: 15px; border-radius: 14px; user-select: all;
+  background: linear-gradient(var(--solid2), var(--solid2)) padding-box, linear-gradient(120deg, var(--red), var(--cyan)) border-box; border: 1px solid transparent; }
+.ghost { position: relative; overflow: hidden; isolation: isolate; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--bg2);
+  border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px; width: 100%; margin-top: 10px; transition: transform .4s var(--spring), box-shadow .4s, border-color .4s; }
+.ghost:active { transform: scale(.97); }
+.ghost.done { border-color: transparent; box-shadow: var(--split), var(--glow); animation: pop .6s var(--spring); }
 .hidden { display: none !important; }
-.empty { color: var(--hint); text-align: center; padding: 40px 0; }
+
+/* ---------- entrances ---------- */
+@keyframes rise { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+@keyframes down { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes up { from { opacity: 0; transform: translateY(30px); } }
+@keyframes from-right { from { opacity: 0; transform: translateX(28px); } }
+@keyframes from-left { from { opacity: 0; transform: translateX(-28px); } }
+.pre { opacity: 0; }
+.enter { animation: rise .65s var(--spring) backwards; animation-delay: calc(var(--i, 0) * 40ms + var(--base, 0ms)); }
+.sheet .enter { --base: 90ms; }
+#view.go-right { animation: from-right .5s var(--spring) backwards; }
+#view.go-left { animation: from-left .5s var(--spring) backwards; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .pre { opacity: 1 !important; }
+  .aurora { display: none; }
+}
 </style>
 </head>
 <body>
+<div class="aurora" aria-hidden="true"><i></i><i></i></div>
 <div class="wrap" id="main">
-  <header><span class="brand">CutForge</span><span class="ver">Studio · v0.4.1</span></header>
+  <header><span class="brand" data-text="CutForge">CutForge</span><span class="ver">Studio · v0.5.0</span><span class="live" id="live"></span></header>
   <div class="search-wrap" id="searchWrap">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input class="search" id="search" placeholder="Suchen" autocomplete="off">
@@ -109,12 +269,12 @@ body.has-send:not(.in-sheet) { padding-bottom: calc(146px + env(safe-area-inset-
 </div>
 
 <nav id="tabs"></nav>
-<section class="sheet" id="sheet"><div class="wrap" id="sheetBody"></div></section>
+<section class="sheet" id="sheet"><div class="grip" title="Nach unten ziehen zum Schließen"></div><div class="wrap" id="sheetBody"></div></section>
 <button class="primary hidden" id="send">Auftrag senden</button>
 
 <script>
 "use strict";
-const MENU = {"version": "0.4.1", "effects": [{"id": "explosion", "title": "Explosion", "group": "action", "desc": "Hinter dem Motiv explodiert alles – Feuerball, Druckwelle.", "motion": "crash_zoom_out", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} stands still as a huge fiery explosion erupts behind, shockwave, flying debris, cinematic action movie shot, loud explosion sound."}, {"id": "disintegrate", "title": "Zerfallen", "group": "magie", "desc": "Das Motiv zerfällt zu Staub und weht davon.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly disintegrates into glowing dust particles that drift away in the wind, magical, cinematic."}, {"id": "melt", "title": "Schmelzen", "group": "magie", "desc": "Das Motiv schmilzt wie Wachs.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} melts like hot wax, dripping down smoothly, surreal, highly detailed."}, {"id": "on_fire", "title": "In Flammen", "group": "action", "desc": "Flammen hüllen das Motiv ein.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} is engulfed in roaring flames, fire dancing around, embers flying, dramatic lighting, crackling fire sound."}, {"id": "levitate", "title": "Schweben", "group": "magie", "desc": "Das Motiv hebt ab und schwebt.", "motion": "crane_up", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly levitates off the ground and floats in the air, gentle wind, dreamy atmosphere."}, {"id": "metal", "title": "Zu Metall", "group": "verwandlung", "desc": "Verwandlung in glänzendes Chrom.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} transforms into shiny liquid chrome metal, reflective surface spreading over it, sci-fi."}, {"id": "freeze", "title": "Gefrieren", "group": "verwandlung", "desc": "Eis überzieht das Motiv.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} freezes as ice crystals rapidly spread over it, frost, cold breath, crackling ice sound."}, {"id": "stone", "title": "Versteinern", "group": "verwandlung", "desc": "Das Motiv wird zur Steinstatue.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly turns into a cracked stone statue, dust falling, dramatic."}, {"id": "gold", "title": "Gold", "group": "verwandlung", "desc": "Goldener Glanz breitet sich aus.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} turns into polished gold, glittering reflections, luxurious lighting."}, {"id": "hologram", "title": "Hologramm", "group": "scifi", "desc": "Wird zum flackernden Hologramm.", "motion": "arc_right", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} turns into a flickering blue hologram with scan lines and glitches, futuristic."}, {"id": "cyborg", "title": "Cyborg", "group": "scifi", "desc": "Mechanische Teile kommen zum Vorschein.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} transforms into a cyborg, skin opening to reveal glowing mechanical parts and wires, sci-fi."}, {"id": "lightning", "title": "Blitze", "group": "action", "desc": "Elektrische Blitze zucken um das Motiv.", "motion": "crash_zoom_in", "seconds": 4, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} is surrounded by crackling electric lightning bolts, glowing energy, thunder sound."}, {"id": "portal", "title": "Portal", "group": "magie", "desc": "Ein leuchtendes Portal öffnet sich.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "a glowing magical portal opens behind {subject}, swirling energy, light pouring out."}, {"id": "wings", "title": "Flügel", "group": "magie", "desc": "Große Engelsflügel wachsen.", "motion": "crane_up", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "large white feathered wings unfold from the back of {subject}, feathers floating, heavenly light."}, {"id": "snow_globe", "title": "Schneekugel", "group": "magie", "desc": "Die Szene wird zur Schneekugel.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} inside a snow globe, the globe is shaken and snowflakes swirl around, cozy."}, {"id": "rain_drama", "title": "Regen-Drama", "group": "stimmung", "desc": "Heftiger Regen, dramatisches Licht.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} in heavy dramatic rain, wet hair and clothes, cinematic backlight, rain sound."}, {"id": "wind_hair", "title": "Wind im Haar", "group": "stimmung", "desc": "Starker Wind, flatternde Haare und Kleidung.", "motion": "arc_left", "seconds": 4, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} with hair and clothes blowing in strong wind, cinematic, golden hour light."}, {"id": "hug", "title": "Umarmung", "group": "menschen", "desc": "Die Personen im Bild umarmen sich.", "motion": "dolly_in", "seconds": 5, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "the people in the image ({subject}) turn to each other and share a warm hug, emotional, natural motion."}, {"id": "dance", "title": "Tanzen", "group": "menschen", "desc": "Die Person beginnt zu tanzen.", "motion": "orbit_360", "seconds": 6, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "{subject} starts dancing energetically to upbeat music, natural body movement, music playing."}, {"id": "smile", "title": "Lächeln", "group": "menschen", "desc": "Ein natürliches Lächeln und Blick in die Kamera.", "motion": "static", "seconds": 4, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "{subject} looks into the camera and breaks into a warm natural smile, subtle head movement."}, {"id": "talk", "title": "Sprechen", "group": "menschen", "desc": "Die Person spricht einen Satz (Text unten eingeben).", "motion": "static", "seconds": 6, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} looks into the camera and speaks clearly with natural lip movement and expressions."}, {"id": "zoom_eye", "title": "Ins Auge", "group": "spektakel", "desc": "Zoom ins Auge – dahinter eine andere Welt.", "motion": "crash_zoom_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "the camera zooms extremely close into the eye of {subject}, the iris turns into a vast cosmic galaxy."}, {"id": "earth_zoom_out", "title": "Bis ins All", "group": "spektakel", "desc": "Von der Person bis hinaus ins Weltall.", "motion": "crash_zoom_out", "seconds": 6, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "an epic zoom out from {subject} up through the clouds into outer space, the earth becomes visible."}, {"id": "paper", "title": "Papier-Origami", "group": "verwandlung", "desc": "Faltet sich zu Origami.", "motion": "arc_right", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} folds itself into an intricate paper origami figure, crisp paper texture."}], "motions": [{"id": "none", "title": "Frei", "group": "basis"}, {"id": "static", "title": "Stativ", "group": "basis"}, {"id": "dolly_in", "title": "Dolly rein", "group": "basis"}, {"id": "dolly_out", "title": "Dolly raus", "group": "basis"}, {"id": "crash_zoom_in", "title": "Crash-Zoom", "group": "dynamisch"}, {"id": "crash_zoom_out", "title": "Crash-Zoom raus", "group": "dynamisch"}, {"id": "orbit_360", "title": "360°-Orbit", "group": "dynamisch"}, {"id": "arc_left", "title": "Bogen links", "group": "basis"}, {"id": "arc_right", "title": "Bogen rechts", "group": "basis"}, {"id": "crane_up", "title": "Kran hoch", "group": "kino"}, {"id": "crane_down", "title": "Kran runter", "group": "kino"}, {"id": "fpv_drone", "title": "FPV-Drohne", "group": "dynamisch"}, {"id": "aerial", "title": "Luftaufnahme", "group": "kino"}, {"id": "bullet_time", "title": "Bullet Time", "group": "dynamisch"}, {"id": "handheld", "title": "Handkamera", "group": "basis"}, {"id": "pan_left", "title": "Schwenk links", "group": "basis"}, {"id": "pan_right", "title": "Schwenk rechts", "group": "basis"}, {"id": "tilt_up", "title": "Neigung hoch", "group": "basis"}, {"id": "tilt_down", "title": "Neigung runter", "group": "basis"}, {"id": "dolly_zoom", "title": "Vertigo", "group": "kino"}, {"id": "whip_pan", "title": "Reißschwenk", "group": "dynamisch"}, {"id": "tracking", "title": "Verfolgung", "group": "kino"}, {"id": "follow_behind", "title": "Hinterher", "group": "kino"}, {"id": "push_low", "title": "Froschperspektive", "group": "kino"}, {"id": "top_down", "title": "Von oben", "group": "kino"}, {"id": "earth_zoom", "title": "Zoom aus dem All", "group": "spektakel"}, {"id": "timelapse", "title": "Zeitraffer", "group": "spektakel"}, {"id": "snorricam", "title": "Körperkamera", "group": "spektakel"}, {"id": "rack_focus", "title": "Schärfe ziehen", "group": "kino"}], "models": [{"id": "ltx25", "title": "LTX-2.5", "available": true, "good": "Allrounder: Text oder Bild → Video bis 10 s mit passendem Ton, folgt Kamera-Anweisungen am besten, Start- und Endbild, Verlängern"}, {"id": "hunyuan15", "title": "HunyuanVideo 1.5", "available": true, "good": "Schnelle Entwürfe und Ideen ausprobieren, ruhige Szenen; ohne Ton"}, {"id": "minimax", "title": "MiniMax H3", "available": true, "good": "Dieselbe Figur aus bis zu 3 Referenzbildern, Personen die sprechen (Dialog mit Lippen), mit Ton"}], "imageModels": [{"id": "qwen21", "title": "Qwen-Image 2.1", "available": true, "good": "Hält sich am genauesten an lange Prompts, schreibt lesbare Schrift ins Bild (Plakate, Logos, Schilder), viele Personen und Details; kann auch Bilder bearbeiten"}, {"id": "krea2", "title": "Krea 2 Turbo", "available": true, "good": "Sehr fotorealistisch mit ästhetischem Look (Mode, Produkt, Landschaft); am schnellsten"}, {"id": "flux1dev", "title": "FLUX.1-dev", "available": true, "good": "Natürliche Fotos und Porträts (Haut, Licht); bewährter Klassiker mit riesiger LoRA-Auswahl"}], "apps": [{"id": "upscale", "title": "Hochskalieren", "desc": "Schärfer und größer bis 4K (SeedVR2).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "upscale_fast", "title": "Schnell hochskalieren", "desc": "Schneller Upscale (FlashVSR).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "smooth", "title": "Flüssiger", "desc": "50/60 Bilder pro Sekunde (RIFE).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "slowmo", "title": "Zeitlupe", "desc": "Echte Zeitlupe 2×/4×.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "night", "title": "Tag → Nacht", "desc": "Dieselbe Szene bei Nacht.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "relight", "title": "Licht & Tageszeit", "desc": "Goldene/blaue Stunde, bewölkt, Tag.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "style", "title": "Stil", "desc": "Anime, Film Noir, Ölgemälde, Claymation …", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "weather", "title": "Wetter", "desc": "Schnee, Regen, Gewitter, Nebel, Jahreszeit.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "outfit", "title": "Outfit ändern", "desc": "Kleidung per Text ändern.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "swap", "title": "Figur tauschen (alt · SCAIL-2)", "desc": "Ältere Variante – im Vergleich langsamer und weniger ähnlich; besser „Figur tauschen · OpenJutsu“.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "animate", "title": "Figur animieren", "desc": "Figur aus Foto bewegt sich wie im Video.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "remove", "title": "Objekt entfernen", "desc": "Begriff eingeben – VOID entfernt es samt Schatten.", "input": "video", "reference": null, "maskText": true, "audio": null, "openjutsu": null, "generate": null}, {"id": "extend", "title": "Verlängern", "desc": "Video nahtlos weiterlaufen lassen.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": "erstellen_verlaengern"}, {"id": "foley", "title": "Geräusche", "desc": "Passender Ton zum Bild.", "input": "video", "reference": null, "maskText": null, "audio": "foley", "openjutsu": null, "generate": null}, {"id": "subtitles", "title": "Untertitel", "desc": "Gesprochenes als Untertitel-Datei.", "input": "video", "reference": null, "maskText": null, "audio": "subtitles", "openjutsu": null, "generate": null}, {"id": "voice", "title": "Sprecher", "desc": "Deutscher Sprecher aus Text (VoxCPM2).", "input": "none", "reference": null, "maskText": null, "audio": "tts", "openjutsu": null, "generate": null}, {"id": "music", "title": "Musik", "desc": "Musik nach Stil und Länge (ACE-Step).", "input": "none", "reference": null, "maskText": null, "audio": "music", "openjutsu": null, "generate": null}, {"id": "weather_fx", "title": "Wetter-Effekt (ohne KI)", "desc": "Schnee/Regen/Blitz-Ebene sofort.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "oj_swap", "title": "Figur tauschen · OpenJutsu", "desc": "Die Hauptperson wird zur Figur aus deinem Foto – Kamera, Schnitte, Bewegung und Ton bleiben.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": "simple", "generate": null}, {"id": "oj_object", "title": "Objekt ändern · OpenJutsu", "desc": "Haare, Kleidung, Dinge ändern oder entfernen, oder den Hintergrund um eine Person tauschen.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": "object", "generate": null}, {"id": "oj_mask", "title": "Tausch-Maske prüfen", "desc": "Zeigt in ca. 1 Minute, welcher Bereich getauscht würde (cyan) und die Bewegungs-Vorlage.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": "mask", "generate": null}], "video": {"ltx25": {"default": "720p", "render": [{"id": "540p", "note": "Entwurf, schnell"}, {"id": "720p", "note": "Standard"}, {"id": "1080p", "note": "≈ 2,5× Rechenzeit"}, {"id": "1440p", "note": "≈ 5× Rechenzeit, viel VRAM"}, {"id": "2160p", "note": "4K – sehr langsam, auf 24 GB nur kurze Clips"}]}, "hunyuan15": {"default": "720p", "render": [{"id": "480p", "note": "schnell"}, {"id": "720p", "note": "Standard"}]}, "minimax": {"default": "768p", "render": [{"id": "768p", "note": "die einzige native Größe des Modells"}]}}, "image": {"qwen21": {"render": [{"id": "1k", "note": "≈ 1 MP, schnell", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "≈ 4 MP – die volle native Auflösung, ≈ 4× Rechenzeit", "sizes": {"16:9": "2752×1536", "9:16": "1536×2752", "1:1": "2048×2048", "4:3": "2400×1792", "3:4": "1792×2400", "4:5": "1760×2208", "3:2": "2528×1696", "2:3": "1696×2528", "21:9": "3040×1280"}}]}, "krea2": {"render": [{"id": "1k", "note": "≈ 1 MP", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "bis 2048 px, ≈ 4× Zeit", "sizes": {"16:9": "2048×1152", "9:16": "1152×2048", "1:1": "2048×2048", "4:3": "2048×1536", "3:4": "1536×2048", "4:5": "1632×2048", "3:2": "2048×1360", "2:3": "1360×2048", "21:9": "2048×1024"}}]}, "flux1dev": {"render": [{"id": "1k", "note": "≈ 1 MP", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "2 MP – das Maximum", "sizes": {"16:9": "1872×1056", "9:16": "1056×1872", "1:1": "1408×1408", "4:3": "1632×1216", "3:4": "1216×1632", "4:5": "1264×1568", "3:2": "1728×1152", "2:3": "1152×1728", "21:9": "2160×912"}}]}}, "upscale": [{"id": "1080p", "note": "KI-Schärfen SeedVR2, ≈ 13 min je 5 s"}, {"id": "1440p", "note": "KI-Schärfen SeedVR2, ≈ 25 min je 5 s"}, {"id": "2160p", "note": "KI-Schärfen SeedVR2, sehr langsam, 4K offiziell nicht erprobt"}], "aspects": [{"id": "16:9", "label": "16:9 Querformat (YouTube, TV)"}, {"id": "9:16", "label": "9:16 Hochformat (Reels, TikTok, Shorts)"}, {"id": "1:1", "label": "1:1 Quadrat"}, {"id": "4:3", "label": "4:3 klassisch"}, {"id": "3:4", "label": "3:4 hoch"}, {"id": "4:5", "label": "4:5 hoch (Instagram-Feed)"}, {"id": "3:2", "label": "3:2 Foto quer"}, {"id": "2:3", "label": "2:3 Foto hoch / Poster"}, {"id": "21:9", "label": "21:9 Kino-Breitbild"}]};
+const MENU = {"version": "0.5.0", "effects": [{"id": "explosion", "title": "Explosion", "group": "action", "desc": "Hinter dem Motiv explodiert alles – Feuerball, Druckwelle.", "motion": "crash_zoom_out", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} stands still as a huge fiery explosion erupts behind, shockwave, flying debris, cinematic action movie shot, loud explosion sound."}, {"id": "disintegrate", "title": "Zerfallen", "group": "magie", "desc": "Das Motiv zerfällt zu Staub und weht davon.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly disintegrates into glowing dust particles that drift away in the wind, magical, cinematic."}, {"id": "melt", "title": "Schmelzen", "group": "magie", "desc": "Das Motiv schmilzt wie Wachs.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} melts like hot wax, dripping down smoothly, surreal, highly detailed."}, {"id": "on_fire", "title": "In Flammen", "group": "action", "desc": "Flammen hüllen das Motiv ein.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} is engulfed in roaring flames, fire dancing around, embers flying, dramatic lighting, crackling fire sound."}, {"id": "levitate", "title": "Schweben", "group": "magie", "desc": "Das Motiv hebt ab und schwebt.", "motion": "crane_up", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly levitates off the ground and floats in the air, gentle wind, dreamy atmosphere."}, {"id": "metal", "title": "Zu Metall", "group": "verwandlung", "desc": "Verwandlung in glänzendes Chrom.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} transforms into shiny liquid chrome metal, reflective surface spreading over it, sci-fi."}, {"id": "freeze", "title": "Gefrieren", "group": "verwandlung", "desc": "Eis überzieht das Motiv.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} freezes as ice crystals rapidly spread over it, frost, cold breath, crackling ice sound."}, {"id": "stone", "title": "Versteinern", "group": "verwandlung", "desc": "Das Motiv wird zur Steinstatue.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly turns into a cracked stone statue, dust falling, dramatic."}, {"id": "gold", "title": "Gold", "group": "verwandlung", "desc": "Goldener Glanz breitet sich aus.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} turns into polished gold, glittering reflections, luxurious lighting."}, {"id": "hologram", "title": "Hologramm", "group": "scifi", "desc": "Wird zum flackernden Hologramm.", "motion": "arc_right", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} turns into a flickering blue hologram with scan lines and glitches, futuristic."}, {"id": "cyborg", "title": "Cyborg", "group": "scifi", "desc": "Mechanische Teile kommen zum Vorschein.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} transforms into a cyborg, skin opening to reveal glowing mechanical parts and wires, sci-fi."}, {"id": "lightning", "title": "Blitze", "group": "action", "desc": "Elektrische Blitze zucken um das Motiv.", "motion": "crash_zoom_in", "seconds": 4, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} is surrounded by crackling electric lightning bolts, glowing energy, thunder sound."}, {"id": "portal", "title": "Portal", "group": "magie", "desc": "Ein leuchtendes Portal öffnet sich.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "a glowing magical portal opens behind {subject}, swirling energy, light pouring out."}, {"id": "wings", "title": "Flügel", "group": "magie", "desc": "Große Engelsflügel wachsen.", "motion": "crane_up", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "large white feathered wings unfold from the back of {subject}, feathers floating, heavenly light."}, {"id": "snow_globe", "title": "Schneekugel", "group": "magie", "desc": "Die Szene wird zur Schneekugel.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} inside a snow globe, the globe is shaken and snowflakes swirl around, cozy."}, {"id": "rain_drama", "title": "Regen-Drama", "group": "stimmung", "desc": "Heftiger Regen, dramatisches Licht.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} in heavy dramatic rain, wet hair and clothes, cinematic backlight, rain sound."}, {"id": "wind_hair", "title": "Wind im Haar", "group": "stimmung", "desc": "Starker Wind, flatternde Haare und Kleidung.", "motion": "arc_left", "seconds": 4, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} with hair and clothes blowing in strong wind, cinematic, golden hour light."}, {"id": "hug", "title": "Umarmung", "group": "menschen", "desc": "Die Personen im Bild umarmen sich.", "motion": "dolly_in", "seconds": 5, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "the people in the image ({subject}) turn to each other and share a warm hug, emotional, natural motion."}, {"id": "dance", "title": "Tanzen", "group": "menschen", "desc": "Die Person beginnt zu tanzen.", "motion": "orbit_360", "seconds": 6, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "{subject} starts dancing energetically to upbeat music, natural body movement, music playing."}, {"id": "smile", "title": "Lächeln", "group": "menschen", "desc": "Ein natürliches Lächeln und Blick in die Kamera.", "motion": "static", "seconds": 4, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "{subject} looks into the camera and breaks into a warm natural smile, subtle head movement."}, {"id": "talk", "title": "Sprechen", "group": "menschen", "desc": "Die Person spricht einen Satz (Text unten eingeben).", "motion": "static", "seconds": 6, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} looks into the camera and speaks clearly with natural lip movement and expressions."}, {"id": "zoom_eye", "title": "Ins Auge", "group": "spektakel", "desc": "Zoom ins Auge – dahinter eine andere Welt.", "motion": "crash_zoom_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "the camera zooms extremely close into the eye of {subject}, the iris turns into a vast cosmic galaxy."}, {"id": "earth_zoom_out", "title": "Bis ins All", "group": "spektakel", "desc": "Von der Person bis hinaus ins Weltall.", "motion": "crash_zoom_out", "seconds": 6, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "an epic zoom out from {subject} up through the clouds into outer space, the earth becomes visible."}, {"id": "paper", "title": "Papier-Origami", "group": "verwandlung", "desc": "Faltet sich zu Origami.", "motion": "arc_right", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} folds itself into an intricate paper origami figure, crisp paper texture."}], "motions": [{"id": "none", "title": "Frei", "group": "basis"}, {"id": "static", "title": "Stativ", "group": "basis"}, {"id": "dolly_in", "title": "Dolly rein", "group": "basis"}, {"id": "dolly_out", "title": "Dolly raus", "group": "basis"}, {"id": "crash_zoom_in", "title": "Crash-Zoom", "group": "dynamisch"}, {"id": "crash_zoom_out", "title": "Crash-Zoom raus", "group": "dynamisch"}, {"id": "orbit_360", "title": "360°-Orbit", "group": "dynamisch"}, {"id": "arc_left", "title": "Bogen links", "group": "basis"}, {"id": "arc_right", "title": "Bogen rechts", "group": "basis"}, {"id": "crane_up", "title": "Kran hoch", "group": "kino"}, {"id": "crane_down", "title": "Kran runter", "group": "kino"}, {"id": "fpv_drone", "title": "FPV-Drohne", "group": "dynamisch"}, {"id": "aerial", "title": "Luftaufnahme", "group": "kino"}, {"id": "bullet_time", "title": "Bullet Time", "group": "dynamisch"}, {"id": "handheld", "title": "Handkamera", "group": "basis"}, {"id": "pan_left", "title": "Schwenk links", "group": "basis"}, {"id": "pan_right", "title": "Schwenk rechts", "group": "basis"}, {"id": "tilt_up", "title": "Neigung hoch", "group": "basis"}, {"id": "tilt_down", "title": "Neigung runter", "group": "basis"}, {"id": "dolly_zoom", "title": "Vertigo", "group": "kino"}, {"id": "whip_pan", "title": "Reißschwenk", "group": "dynamisch"}, {"id": "tracking", "title": "Verfolgung", "group": "kino"}, {"id": "follow_behind", "title": "Hinterher", "group": "kino"}, {"id": "push_low", "title": "Froschperspektive", "group": "kino"}, {"id": "top_down", "title": "Von oben", "group": "kino"}, {"id": "earth_zoom", "title": "Zoom aus dem All", "group": "spektakel"}, {"id": "timelapse", "title": "Zeitraffer", "group": "spektakel"}, {"id": "snorricam", "title": "Körperkamera", "group": "spektakel"}, {"id": "rack_focus", "title": "Schärfe ziehen", "group": "kino"}], "models": [{"id": "ltx25", "title": "LTX-2.5", "available": true, "good": "Allrounder: Text oder Bild → Video bis 10 s mit passendem Ton, folgt Kamera-Anweisungen am besten, Start- und Endbild, Verlängern"}, {"id": "hunyuan15", "title": "HunyuanVideo 1.5", "available": true, "good": "Schnelle Entwürfe und Ideen ausprobieren, ruhige Szenen; ohne Ton"}, {"id": "minimax", "title": "MiniMax H3", "available": true, "good": "Dieselbe Figur aus bis zu 3 Referenzbildern, Personen die sprechen (Dialog mit Lippen), mit Ton"}], "imageModels": [{"id": "qwen21", "title": "Qwen-Image 2.1", "available": true, "good": "Hält sich am genauesten an lange Prompts, schreibt lesbare Schrift ins Bild (Plakate, Logos, Schilder), viele Personen und Details; kann auch Bilder bearbeiten"}, {"id": "krea2", "title": "Krea 2 Turbo", "available": true, "good": "Sehr fotorealistisch mit ästhetischem Look (Mode, Produkt, Landschaft); am schnellsten"}, {"id": "flux1dev", "title": "FLUX.1-dev", "available": true, "good": "Natürliche Fotos und Porträts (Haut, Licht); bewährter Klassiker mit riesiger LoRA-Auswahl"}], "apps": [{"id": "upscale", "title": "Hochskalieren", "desc": "Schärfer und größer bis 4K (SeedVR2).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "upscale_fast", "title": "Schnell hochskalieren", "desc": "Schneller Upscale (FlashVSR).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "smooth", "title": "Flüssiger", "desc": "50/60 Bilder pro Sekunde (RIFE).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "slowmo", "title": "Zeitlupe", "desc": "Echte Zeitlupe 2×/4×.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "night", "title": "Tag → Nacht", "desc": "Dieselbe Szene bei Nacht.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "relight", "title": "Licht & Tageszeit", "desc": "Goldene/blaue Stunde, bewölkt, Tag.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "style", "title": "Stil", "desc": "Anime, Film Noir, Ölgemälde, Claymation …", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "weather", "title": "Wetter", "desc": "Schnee, Regen, Gewitter, Nebel, Jahreszeit.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "outfit", "title": "Outfit ändern", "desc": "Kleidung per Text ändern.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "swap", "title": "Figur tauschen (alt · SCAIL-2)", "desc": "Ältere Variante – im Vergleich langsamer und weniger ähnlich; besser „Figur tauschen · OpenJutsu“.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "animate", "title": "Figur animieren", "desc": "Figur aus Foto bewegt sich wie im Video.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "remove", "title": "Objekt entfernen", "desc": "Begriff eingeben – VOID entfernt es samt Schatten.", "input": "video", "reference": null, "maskText": true, "audio": null, "openjutsu": null, "generate": null}, {"id": "extend", "title": "Verlängern", "desc": "Video nahtlos weiterlaufen lassen.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": "erstellen_verlaengern"}, {"id": "foley", "title": "Geräusche", "desc": "Passender Ton zum Bild.", "input": "video", "reference": null, "maskText": null, "audio": "foley", "openjutsu": null, "generate": null}, {"id": "subtitles", "title": "Untertitel", "desc": "Gesprochenes als Untertitel-Datei.", "input": "video", "reference": null, "maskText": null, "audio": "subtitles", "openjutsu": null, "generate": null}, {"id": "voice", "title": "Sprecher", "desc": "Deutscher Sprecher aus Text (VoxCPM2).", "input": "none", "reference": null, "maskText": null, "audio": "tts", "openjutsu": null, "generate": null}, {"id": "music", "title": "Musik", "desc": "Musik nach Stil und Länge (ACE-Step).", "input": "none", "reference": null, "maskText": null, "audio": "music", "openjutsu": null, "generate": null}, {"id": "weather_fx", "title": "Wetter-Effekt (ohne KI)", "desc": "Schnee/Regen/Blitz-Ebene sofort.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "oj_swap", "title": "Figur tauschen · OpenJutsu", "desc": "Die Hauptperson wird zur Figur aus deinem Foto – Kamera, Schnitte, Bewegung und Ton bleiben.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": "simple", "generate": null}, {"id": "oj_object", "title": "Objekt ändern · OpenJutsu", "desc": "Haare, Kleidung, Dinge ändern oder entfernen, oder den Hintergrund um eine Person tauschen.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": "object", "generate": null}, {"id": "oj_mask", "title": "Tausch-Maske prüfen", "desc": "Zeigt in ca. 1 Minute, welcher Bereich getauscht würde (cyan) und die Bewegungs-Vorlage.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": "mask", "generate": null}], "video": {"ltx25": {"default": "720p", "render": [{"id": "540p", "note": "Entwurf, schnell"}, {"id": "720p", "note": "Standard"}, {"id": "1080p", "note": "≈ 2,5× Rechenzeit"}, {"id": "1440p", "note": "≈ 5× Rechenzeit, viel VRAM"}, {"id": "2160p", "note": "4K – sehr langsam, auf 24 GB nur kurze Clips"}]}, "hunyuan15": {"default": "720p", "render": [{"id": "480p", "note": "schnell"}, {"id": "720p", "note": "Standard"}]}, "minimax": {"default": "768p", "render": [{"id": "768p", "note": "die einzige native Größe des Modells"}]}}, "image": {"qwen21": {"render": [{"id": "1k", "note": "≈ 1 MP, schnell", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "≈ 4 MP – die volle native Auflösung, ≈ 4× Rechenzeit", "sizes": {"16:9": "2752×1536", "9:16": "1536×2752", "1:1": "2048×2048", "4:3": "2400×1792", "3:4": "1792×2400", "4:5": "1760×2208", "3:2": "2528×1696", "2:3": "1696×2528", "21:9": "3040×1280"}}]}, "krea2": {"render": [{"id": "1k", "note": "≈ 1 MP", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "bis 2048 px, ≈ 4× Zeit", "sizes": {"16:9": "2048×1152", "9:16": "1152×2048", "1:1": "2048×2048", "4:3": "2048×1536", "3:4": "1536×2048", "4:5": "1632×2048", "3:2": "2048×1360", "2:3": "1360×2048", "21:9": "2048×1024"}}]}, "flux1dev": {"render": [{"id": "1k", "note": "≈ 1 MP", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "2 MP – das Maximum", "sizes": {"16:9": "1872×1056", "9:16": "1056×1872", "1:1": "1408×1408", "4:3": "1632×1216", "3:4": "1216×1632", "4:5": "1264×1568", "3:2": "1728×1152", "2:3": "1152×1728", "21:9": "2160×912"}}]}}, "upscale": [{"id": "1080p", "note": "KI-Schärfen SeedVR2, ≈ 13 min je 5 s"}, {"id": "1440p", "note": "KI-Schärfen SeedVR2, ≈ 25 min je 5 s"}, {"id": "2160p", "note": "KI-Schärfen SeedVR2, sehr langsam, 4K offiziell nicht erprobt"}], "aspects": [{"id": "16:9", "label": "16:9 Querformat (YouTube, TV)"}, {"id": "9:16", "label": "9:16 Hochformat (Reels, TikTok, Shorts)"}, {"id": "1:1", "label": "1:1 Quadrat"}, {"id": "4:3", "label": "4:3 klassisch"}, {"id": "3:4", "label": "3:4 hoch"}, {"id": "4:5", "label": "4:5 hoch (Instagram-Feed)"}, {"id": "3:2", "label": "3:2 Foto quer"}, {"id": "2:3", "label": "2:3 Foto hoch / Poster"}, {"id": "21:9", "label": "21:9 Kino-Breitbild"}]};
 const tg = window.Telegram && window.Telegram.WebApp;
 const inTelegram = !!(tg && tg.initData);
 
@@ -139,20 +299,44 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 const GROUPS = { action: "Action", magie: "Magie", verwandlung: "Verwandlung", scifi: "Sci-Fi", stimmung: "Stimmung", menschen: "Menschen", spektakel: "Spektakel" };
 
 /* ---------- Telegram look ---------- */
+const hexA = (hex, a) => { const m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return ""; const n = parseInt(m[1], 16);
+  return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
 function applyTheme() {
   if (!inTelegram) return;
   const t = tg.themeParams || {}, r = document.documentElement.style;
   document.documentElement.setAttribute("data-tg", "");
+  document.documentElement.toggleAttribute("data-light", tg.colorScheme === "light");
+  const panel = t.section_bg_color || t.secondary_bg_color;
+  if (panel) { r.setProperty("--solid2", panel); r.setProperty("--nav", hexA(panel, .86) || panel); }
   if (t.bg_color) r.setProperty("--bg", t.bg_color);
   if (t.secondary_bg_color) { r.setProperty("--bg2", t.secondary_bg_color); r.setProperty("--bg3", t.secondary_bg_color); }
   if (t.section_bg_color) r.setProperty("--bg2", t.section_bg_color);
-  if (t.text_color) { r.setProperty("--text", t.text_color); r.setProperty("--accent", t.text_color); }
+  if (t.text_color) r.setProperty("--text", t.text_color);
   if (t.hint_color) r.setProperty("--hint", t.hint_color);
-  if (t.bg_color) r.setProperty("--on-accent", t.bg_color);
   if (t.section_separator_color) r.setProperty("--line", t.section_separator_color);
   try { tg.setHeaderColor(t.bg_color || "#0e0f11"); tg.setBackgroundColor(t.bg_color || "#0e0f11"); } catch (e) { /* older clients */ }
 }
 const haptic = (k = "light") => { try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(k); } catch (e) { /* none */ } };
+const tick = () => { try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) { /* none */ } };
+
+/* ---------- motion helpers ---------- */
+const reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+let intro = null;                    // set before a render that should play its entrance ("first", "left", "right", "sheet")
+let lastSum = null;                  // the summary already shown, so only real changes flash
+let advOpen = false;                 // "Feinheiten" stays open while you change things inside it
+function replay(el, cls) { if (!el || reduced) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+function pop(selector, cls = "just") { replay(document.querySelector(selector), cls); }
+const io = !reduced && "IntersectionObserver" in window ? new IntersectionObserver((entries) => {
+  let i = 0;
+  for (const en of entries) {
+    if (!en.isIntersecting) continue;
+    const n = en.target; io.unobserve(n);
+    n.style.setProperty("--i", Math.min(i++, 12)); n.classList.remove("pre"); n.classList.add("enter");
+  }
+}, { rootMargin: "0px 0px -4% 0px" }) : null;
+function reveal(nodes) { if (!io) return; for (const n of nodes) { n.classList.add("pre"); io.observe(n); } }
+function stagger(nodes) { if (reduced) return; [...nodes].forEach((n, i) => { n.style.setProperty("--i", Math.min(i, 12)); n.classList.add("enter"); }); }
+function zap() { replay(document.querySelector(".brand"), "zap"); }
 
 /* ---------- favourites (Telegram cloud, else this browser) ---------- */
 let favs = [];
@@ -223,16 +407,34 @@ const title = (id) => (MENU.models.find((m) => m.id === id) || MENU.imageModels.
 /* ---------- views ---------- */
 const TABS = [["vid", "Video", "video"], ["fx", "Effekte", "fx"], ["app", "Apps", "apps"], ["img", "Bild", "image"]];
 function renderTabs() {
-  document.getElementById("tabs").innerHTML = TABS.map(([id, label, ic]) => `<button data-tab="${id}" class="${tab === id ? "on" : ""}">${icon(ic, 22)}<span>${label}</span></button>`).join("");
+  const nav = document.getElementById("tabs");
+  const first = !nav.dataset.built;
+  if (first) {
+    nav.innerHTML = `<span class="pill"></span>` + TABS.map(([id, label, ic]) => `<button data-tab="${id}">${icon(ic, 22)}<span>${label}</span></button>`).join("");
+    nav.dataset.built = "1";
+  }
+  nav.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
+  movePill(first);
+}
+function movePill(instant) {
+  const nav = document.getElementById("tabs"), b = nav.querySelector("button.on"), p = nav.querySelector(".pill");
+  if (!b || !p) return;
+  if (instant) p.style.transition = "none";
+  p.style.width = `${b.offsetWidth - 8}px`;
+  p.style.transform = `translateX(${b.offsetLeft + 4}px)`;
+  if (instant) { void p.offsetWidth; p.style.transition = ""; }
 }
 function matches(x) { const q = query.trim().toLowerCase(); return !q || (x.title + " " + (x.desc || "")).toLowerCase().includes(q); }
 function effectTile(e) {
-  return `<button class="tile" data-open="fx:${e.id}">${icon(e.group, 22)}<span class="t">${esc(e.title)}</span><span class="d">${esc(e.desc)}</span></button>`;
+  return `<button class="tile" data-open="fx:${e.id}"><span class="ic">${icon(e.group, 20)}</span><span class="t">${esc(e.title)}</span><span class="d">${esc(e.desc)}</span></button>`;
 }
 function render() {
   renderTabs();
   document.getElementById("searchWrap").classList.toggle("hidden", tab === "vid" || tab === "img");
   const v = document.getElementById("view");
+  const mode = intro; intro = null;
+  if (io) v.querySelectorAll(".pre").forEach((n) => io.unobserve(n));
+  if (mode) lastSum = null;
   if (tab === "fx") {
     const list = MENU.effects.filter(matches);
     const fav = list.filter((e) => favs.includes(e.id));
@@ -244,12 +446,16 @@ function render() {
     v.innerHTML = html || `<p class="empty">Nichts gefunden.</p>`;
   } else if (tab === "app") {
     const list = MENU.apps.filter(matches);
-    v.innerHTML = list.map((a) => `<button class="row" data-open="app:${a.id}"><span class="grow"><span class="t">${esc(a.title)}</span><br><span class="d">${esc(a.desc)}</span></span><span class="chev">${icon("chev", 18)}</span></button>`).join("")
+    v.innerHTML = list.map((a) => `<button class="row" data-open="app:${a.id}"><span class="ic">${icon(a.input === "video" ? "video" : a.input === "image" ? "image" : "apps", 20)}</span><span class="grow"><span class="t">${esc(a.title)}</span><br><span class="d">${esc(a.desc)}</span></span><span class="chev">${icon("chev", 18)}</span></button>`).join("")
       || `<p class="empty">Nichts gefunden.</p>`;
   } else if (tab === "vid") {
     v.innerHTML = videoFormHtml();
   } else {
     v.innerHTML = imageFormHtml();
+  }
+  if (mode && !reduced) {
+    if (mode === "left" || mode === "right") replay(v, `go-${mode}`);
+    reveal(v.querySelectorAll(".tile, .row, h2, .field, .ptitle, .lead, .summary, .empty"));
   }
   updateSend();
 }
@@ -260,7 +466,7 @@ function videoFormHtml() {
   const src = field("Ausgangspunkt", seg("vid.src", [["text", "Text"], ["photo", "Foto"], ["photos", "Start + Ende"]], f.src),
     "", f.src === "text" ? "" : f.src === "photo" ? "Danach schickst du dem Bot ein Foto." : "Danach schickst du Start- und Endbild.");
   const minimaxOnly = models.length === 1 && models[0] === "minimax";
-  return `<h1 style="font-size:24px;margin:2px 2px 0;font-weight:650">Video</h1><p class="lead" style="margin:2px 2px 0">Aus Text oder Bild, mit Ton und Kamerafahrt.</p>`
+  return `<h1 class="ptitle">Video</h1><p class="lead">Aus Text oder Bild, mit Ton und Kamerafahrt.</p>`
     + src + field("Beschreibung", `<textarea data-in="vid.t" placeholder="Was passiert? Englisch wirkt am besten, z. B. „a red fox runs through deep snow at sunrise“">${esc(f.t)}</textarea>`)
     + field("Modell", seg("vid.m", vModels.map((m) => [m.id, m.title]), "", 'data-multi="1"').replace(/data-v="([^"]+)" class=""/g, (s, id) => (models.includes(id) ? `data-v="${id}" class="on"` : s)), "", "Mehrere wählen = je Modell eigene Clips zum Vergleichen.")
     + field("Kamera", select("vid.c", [["none", "Frei"], ...MENU.motions.map((m) => [m.id, m.title])], f.c))
@@ -277,7 +483,7 @@ function imageFormHtml() {
   const t2i = f.src === "text";
   const models = t2i ? f.m : ["qwen21"];
   const sizes = (MENU.image[models[0]] || { render: [] }).render;
-  return `<h1 style="font-size:24px;margin:2px 2px 0;font-weight:650">Bild</h1><p class="lead" style="margin:2px 2px 0">Neu erzeugen oder ein Foto verändern.</p>`
+  return `<h1 class="ptitle">Bild</h1><p class="lead">Neu erzeugen oder ein Foto verändern.</p>`
     + field("Ausgangspunkt", seg("img.src", [["text", "Text"], ["edit1", "Foto ändern"], ["edit2", "Zwei Fotos"]], f.src), "",
       t2i ? "" : f.src === "edit1" ? "Danach schickst du dem Bot das Foto." : "Danach schickst du zwei Fotos.")
     + field("Beschreibung", `<textarea data-in="img.t" placeholder="${t2i ? "Was soll zu sehen sein? Deutsch oder Englisch" : "Was soll sich ändern? z. B. „mach daraus einen Winterabend“"}">${esc(f.t)}</textarea>`)
@@ -303,16 +509,21 @@ function openSheet(kind, id) {
     sheet = { kind, item: a };
     Object.assign(sheetForm, { t: "", q: "gut" });
   }
+  advOpen = false; lastSum = null;
+  const sh = document.getElementById("sheet");
+  sh.scrollTop = 0;
   renderSheet();
-  document.getElementById("sheet").classList.add("open");
+  stagger(document.getElementById("sheetBody").querySelectorAll(".sheet-head, .lead, .needs, .field, details, .summary"));
+  sh.classList.add("open");
   document.body.classList.add("in-sheet");
-  if (inTelegram) { tg.BackButton.show(); }
+  if (inTelegram) { tg.BackButton.show(); try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) { /* older clients */ } }
 }
 function closeSheet() {
   sheet = null;
   document.getElementById("sheet").classList.remove("open");
   document.body.classList.remove("in-sheet");
-  if (inTelegram) tg.BackButton.hide();
+  if (inTelegram) { tg.BackButton.hide(); try { tg.enableVerticalSwipes && tg.enableVerticalSwipes(); } catch (e) { /* older clients */ } }
+  lastSum = null;
   updateSend();
 }
 function renderSheet() {
@@ -332,7 +543,7 @@ function renderSheet() {
         "", `★ empfohlen: ${esc(e.empfohlen_grund || "")}`)
       + field("Intensität", seg("fx.i", [["sanft", "Sanft"], ["normal", "Normal"], ["extrem", "Extrem"]], f.i))
       + field("Länge", seg("fx.s", [3, 4, 5, 6, 8, 10].map((s) => [s, `${s} s`, hasMinimax && s < 5]), hasMinimax ? Math.max(5, f.s) : f.s))
-      + `<details><summary>Feinheiten – Format, Auflösung, Kamera, Ton, Endbild, Effekt-Text</summary>`
+      + `<details${advOpen ? " open" : ""}><summary>Feinheiten – Format, Auflösung, Kamera, Ton, Endbild, Effekt-Text</summary>`
       + (models.length === 1 && models[0] === "minimax" ? "" : field("Format", select("fx.a", aspectOptions(true), f.a)))
       + renderControls(models, { r: f.r, o: f.o }).replace(/data-seg="r"/, 'data-seg="fx.r"').replace(/data-seg="o"/, 'data-seg="fx.o"')
       + field("Kamera", select("fx.c", [["none", `Effekt-Standard · ${motion ? motion.title : e.motion}`], ...MENU.motions.filter((m) => m.id !== "none").map((m) => [m.id, m.title])], f.c))
@@ -394,15 +605,20 @@ function summaryText(o) {
 function updateSend() {
   const o = currentOrder();
   const sum = document.getElementById(sheet ? "sheetBody" : "view").querySelector("#sum");
-  if (sum && o) sum.innerHTML = summaryText(o);
+  if (sum && o) {
+    const h = summaryText(o);
+    sum.innerHTML = h;
+    if (lastSum !== null && h !== lastSum) replay(sum, "just");
+    lastSum = h;
+  }
   const problem = orderProblem(o);
   const btn = document.getElementById("send");
   if (inTelegram) {
     btn.classList.add("hidden");
     if (o) {
-      tg.MainButton.setParams({ text: problem || "Auftrag senden", is_active: !problem, is_visible: true,
-        color: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || undefined,
-        text_color: getComputedStyle(document.documentElement).getPropertyValue("--on-accent").trim() || undefined });
+      const css = getComputedStyle(document.documentElement);
+      tg.MainButton.setParams({ text: problem || "Auftrag senden", is_active: !problem, is_visible: true, has_shine_effect: !problem,
+        color: problem ? css.getPropertyValue("--hint").trim() || undefined : css.getPropertyValue("--red").trim() || undefined, text_color: "#ffffff" });
     } else tg.MainButton.hide();
   } else {
     btn.classList.toggle("hidden", !o);
@@ -425,25 +641,48 @@ function showCode(code) {
   document.getElementById("sheetBody").innerHTML = `<div class="sheet-head"><h1>Dein Auftrag</h1><button class="close" data-close>${icon("close", 16)}</button></div>`
     + `<p class="lead">Kopiere den Code und schick ihn deinem CutForge-Bot in Telegram. Er fragt dann nach den Fotos oder Videos.</p>`
     + `<div class="code" id="code">${esc(code)}</div><button class="ghost" id="copy">${icon("copy", 16)} Kopieren</button>`;
+  stagger(document.getElementById("sheetBody").children);
+  decode(document.getElementById("code"), code);
+  document.getElementById("sheet").scrollTop = 0;
   document.getElementById("sheet").classList.add("open");
   document.body.classList.add("in-sheet");
   document.getElementById("send").classList.add("hidden");
   document.getElementById("copy").onclick = async () => {
-    try { await navigator.clipboard.writeText(code); document.getElementById("copy").textContent = "Kopiert ✓"; haptic(); }
+    try { await navigator.clipboard.writeText(code); const c = document.getElementById("copy"); c.textContent = "Kopiert ✓"; c.classList.add("done"); haptic("medium"); }
     catch (e) { const r = document.createRange(); r.selectNodeContents(document.getElementById("code")); getSelection().removeAllRanges(); getSelection().addRange(r); }
   };
+}
+
+function decode(el, text) {
+  if (reduced) return;
+  const abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  const t0 = performance.now(), dur = 900;
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / dur), fixed = Math.floor(text.length * k * k * (3 - 2 * k));
+    let out = text.slice(0, fixed);
+    for (let i = fixed; i < text.length; i++) out += text[i] === "." ? "." : abc[(Math.random() * abc.length) | 0];
+    el.textContent = out;
+    if (k < 1 && el.isConnected) requestAnimationFrame(step); else el.textContent = text;
+  };
+  requestAnimationFrame(step);
 }
 
 /* ---------- events ---------- */
 function formOf(key) { const [scope, k] = key.split("."); return [scope === "vid" ? videoForm : scope === "img" ? imageForm : sheetForm, k, scope]; }
 function rerender(scope) { if (scope === "vid" || scope === "img") render(); else renderSheet(); }
 document.addEventListener("click", (ev) => {
+  const sum = ev.target.closest("summary");
+  if (sum) { const d = sum.parentElement; advOpen = !d.open; if (advOpen) setTimeout(() => stagger(d.querySelectorAll(":scope > :not(summary)")), 0); tick(); return; }
   const t = ev.target.closest("button, [data-open]");
   if (!t) return;
-  if (t.dataset.tab) { tab = t.dataset.tab; haptic(); window.scrollTo(0, 0); render(); return; }
+  if (t.dataset.tab) {
+    const from = TABS.findIndex((x) => x[0] === tab), to = TABS.findIndex((x) => x[0] === t.dataset.tab);
+    if (from === to) { window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }); return; }
+    tab = t.dataset.tab; tick(); window.scrollTo(0, 0); intro = to > from ? "right" : "left"; render(); zap(); return;
+  }
   if (t.dataset.open) { const [k, id] = t.dataset.open.split(":"); openSheet(k, id); return; }
   if (t.hasAttribute("data-close")) { closeSheet(); return; }
-  if (t.dataset.fav) { toggleFav(t.dataset.fav); renderSheet(); return; }
+  if (t.dataset.fav) { toggleFav(t.dataset.fav); renderSheet(); pop(`.sheet [data-fav="${t.dataset.fav}"]`); return; }
   if (t.id === "send") { send(); return; }
   const segEl = t.closest("[data-seg]");
   if (segEl && t.dataset.v !== undefined) {
@@ -451,10 +690,15 @@ document.addEventListener("click", (ev) => {
     let v = t.dataset.v; if (/^\d+$/.test(v) && k !== "r" && k !== "o") v = Number(v);
     if (segEl.dataset.multi) { const cur = form[k]; form[k] = cur.includes(v) ? (cur.length > 1 ? cur.filter((x) => x !== v) : cur) : [...cur, v]; }
     else form[k] = v;
-    haptic(); rerender(scope); return;
+    tick(); rerender(scope); pop(`[data-seg="${segEl.dataset.seg}"] [data-v="${CSS.escape(t.dataset.v)}"]`); return;
   }
   const st = t.closest("[data-step]");
-  if (st) { const [form, k, scope] = formOf(st.dataset.step); form[k] = Math.max(1, Math.min(4, form[k] + Number(t.dataset.d))); haptic(); rerender(scope); }
+  if (st) {
+    const [form, k, scope] = formOf(st.dataset.step), d = Number(t.dataset.d), before = form[k];
+    form[k] = Math.max(1, Math.min(4, form[k] + d));
+    if (form[k] === before) { haptic("rigid"); return; }
+    tick(); rerender(scope); pop(`[data-step="${st.dataset.step}"] span`, d > 0 ? "up" : "down");
+  }
 });
 document.addEventListener("input", (ev) => {
   const el = ev.target;
@@ -463,10 +707,65 @@ document.addEventListener("input", (ev) => {
 });
 document.addEventListener("change", (ev) => {
   const el = ev.target;
-  if (el.dataset.sel) { const [form, k, scope] = formOf(el.dataset.sel); form[k] = el.value; rerender(scope); }
-  if (el.dataset.tog) { const [form, k, scope] = formOf(el.dataset.tog); form[k] = el.checked; haptic(); rerender(scope); }
+  if (el.dataset.sel) { const [form, k, scope] = formOf(el.dataset.sel); form[k] = el.value; tick(); rerender(scope); pop(`[data-sel="${el.dataset.sel}"]`); }
+  if (el.dataset.tog) { const [form, k, scope] = formOf(el.dataset.tog); form[k] = el.checked; haptic(); rerender(scope); pop(`[data-tog="${el.dataset.tog}"]`); }
 });
 document.getElementById("send").onclick = send;
+
+/* touch light: a soft red-turquoise glow under the finger */
+const LIT = ".tile, .row, .seg button, .primary, .ghost";
+document.addEventListener("pointerdown", (ev) => {
+  const el = ev.target.closest(LIT);
+  if (!el || el.disabled) return;
+  const r = el.getBoundingClientRect();
+  el.style.setProperty("--x", `${ev.clientX - r.left}px`); el.style.setProperty("--y", `${ev.clientY - r.top}px`);
+  el.classList.add("lit");
+  const off = () => { el.classList.remove("lit"); window.removeEventListener("pointerup", off); window.removeEventListener("pointercancel", off); };
+  window.addEventListener("pointerup", off); window.addEventListener("pointercancel", off);
+}, { passive: true });
+
+/* the sheet follows your finger down and closes past a threshold */
+(() => {
+  const sh = document.getElementById("sheet");
+  let y0 = null, dy = 0, t0 = 0, dragging = false, swallow = false;
+  sh.addEventListener("pointerdown", (ev) => {
+    if (!ev.target.closest(".grip, .sheet-head") || sh.scrollTop > 0) return;
+    y0 = ev.clientY; t0 = performance.now(); dy = 0; dragging = false;
+  });
+  window.addEventListener("pointermove", (ev) => {
+    if (y0 === null) return;
+    dy = Math.max(0, ev.clientY - y0);
+    if (!dragging && dy > 6) { dragging = true; sh.classList.add("dragging"); }
+    if (dragging) {
+      sh.style.transform = `translateY(${dy}px)`;
+      const main = document.getElementById("main"), k = Math.min(1, dy / 400);
+      main.style.transition = "none"; main.style.transform = `scale(${0.94 + 0.06 * k})`; main.style.opacity = String(0.4 + 0.6 * k);
+    }
+  });
+  const end = () => {
+    if (y0 === null) return;
+    const speed = dy / Math.max(1, performance.now() - t0), main = document.getElementById("main");
+    y0 = null; sh.classList.remove("dragging"); sh.style.transform = "";
+    main.style.transition = ""; main.style.transform = ""; main.style.opacity = "";
+    if (dragging) { swallow = true; if (dy > 110 || speed > 0.6) { haptic(); closeSheet(); } }
+    dragging = false;
+  };
+  window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
+  sh.addEventListener("click", (ev) => { if (swallow) { swallow = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
+  sh.addEventListener("pointerdown", () => { swallow = false; }, true);
+})();
+
+/* the colour fields drift a little slower than the page */
+(() => {
+  const au = document.querySelector(".aurora");
+  if (!au || reduced) return;
+  let queued = false;
+  window.addEventListener("scroll", () => {
+    if (queued) return; queued = true;
+    requestAnimationFrame(() => { queued = false; au.style.transform = `translateY(${-Math.min(window.scrollY, 1200) * 0.25}px)`; });
+  }, { passive: true });
+})();
+window.addEventListener("resize", () => movePill(true));
 
 /* ---------- start ---------- */
 if (inTelegram) {
@@ -475,7 +774,9 @@ if (inTelegram) {
   tg.MainButton.onClick(send);
   tg.BackButton.onClick(closeSheet);
 }
-loadFavs(render);
+document.getElementById("live").classList.toggle("off", !inTelegram);
+document.getElementById("live").title = inTelegram ? "In Telegram geöffnet" : "Im Browser – der Auftrag wird ein Code zum Kopieren";
+loadFavs(() => { intro = "first"; render(); });
 </script>
 </body>
 </html>
