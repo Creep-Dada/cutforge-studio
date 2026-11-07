@@ -66,6 +66,7 @@ header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; ani
 .ver { color: var(--hint); font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg2); }
 .live { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); margin-left: auto; animation: beat 2.6s infinite; }
 .live.off { background: var(--hint); animation: none; opacity: .5; }
+.live.box { background: linear-gradient(90deg, var(--red), var(--cyan)); width: 9px; height: 9px; }
 @keyframes beat { 0% { box-shadow: 0 0 0 0 var(--cyan-line); } 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 
 /* ---------- search ---------- */
@@ -238,6 +239,116 @@ body.has-send:not(.in-sheet) { padding-bottom: calc(154px + env(safe-area-inset-
 .ghost:active { transform: scale(.97); }
 .ghost.done { border-color: transparent; box-shadow: var(--split), var(--glow); animation: pop .6s var(--spring); }
 .hidden { display: none !important; }
+.tier { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; letter-spacing: .02em;
+  background: linear-gradient(var(--bg), var(--bg)) padding-box, linear-gradient(90deg, var(--red), var(--cyan)) border-box; border: 1px solid transparent; }
+.seg button.lock { opacity: .38; }
+.seg button.lock small { opacity: 1; font-size: 10px; font-weight: 700; letter-spacing: .04em; color: var(--red); }
+.row.locked { opacity: .5; }
+.row .lockmark { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; color: var(--red); padding: 3px 8px; border-radius: 999px;
+  border: 1px solid var(--red-a); }
+.locknote { margin-top: 18px; padding: 14px 15px; border-radius: 14px; font-size: 13.5px; border: 1px solid var(--red-a); background: var(--tint-r); }
+
+/* ---------- Briefkasten: photos straight from here, and their trip to the PC ---------- */
+.picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 14px; }
+.pick { position: relative; border-radius: var(--radius); overflow: hidden; isolation: isolate; aspect-ratio: 4 / 3; }
+.pick label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer;
+  text-align: center; padding: 10px; border-radius: inherit; border: 1.5px dashed var(--cyan-line);
+  background: radial-gradient(120% 90% at 0 0, var(--tint-r), transparent 60%), radial-gradient(120% 90% at 100% 100%, var(--tint-c), transparent 60%), var(--bg2);
+  transition: transform .45s var(--spring), border-color .3s, box-shadow .3s; }
+.pick label:active { transform: scale(.955); }
+@media (hover: hover) { .pick label:hover { border-color: var(--cyan); box-shadow: var(--glow); } }
+.pick .file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.pick .pi { width: 44px; height: 44px; border-radius: 15px; display: grid; place-items: center; margin-bottom: 2px;
+  background: linear-gradient(135deg, var(--red-a), var(--cyan-a)); box-shadow: inset 0 0 0 1px var(--line); animation: bob 3.4s ease-in-out infinite; }
+.pick .pi svg { filter: drop-shadow(-1px 0 var(--red)) drop-shadow(1px 0 var(--cyan)); }
+.pick:nth-child(2) .pi { animation-delay: -1.7s; }
+@keyframes bob { 50% { transform: translateY(-4px) rotate(-3deg); } }
+.pick .pl { font-weight: 650; font-size: 14px; }
+.pick .ps { color: var(--hint); font-size: 12px; }
+.picks.one { grid-template-columns: 1fr; }
+.picks.one .pick { aspect-ratio: 16 / 9; }
+.pick.has { background: #000; }
+.pick.has label { border: 0; padding: 0; justify-content: flex-end; align-items: stretch; background: none; }
+.pick.has img, .pick.has video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
+.pick.fresh img, .pick.fresh video { animation: develop 1s var(--ease) backwards; }
+@keyframes develop { from { filter: blur(12px) saturate(0) brightness(1.5); transform: scale(1.08); } }
+.pick.has .cap { display: flex; align-items: baseline; gap: 6px; padding: 26px 11px 9px; color: #fff; text-align: left;
+  background: linear-gradient(transparent, rgba(0,0,0,.75)); }
+.pick.has .cap .ps { color: rgba(255,255,255,.75); margin-left: auto; }
+.pick .px { position: absolute; top: 7px; right: 7px; z-index: 2; width: 30px; height: 30px; border-radius: 50%; border: 0; display: grid; place-items: center;
+  background: rgba(0,0,0,.55); color: #fff; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: transform .45s var(--spring); }
+.pick .px:active { transform: scale(.8) rotate(90deg); }
+.pick.fresh { animation: pick-in .75s var(--spring); }
+@keyframes pick-in { 0% { transform: scale(.9); box-shadow: -7px 0 0 var(--red), 7px 0 0 var(--cyan); } 100% { transform: none; box-shadow: none; } }
+.safe { display: flex; align-items: center; gap: 7px; color: var(--hint); font-size: 12.5px; margin: 10px 2px 0; }
+.safe svg { flex: none; color: var(--cyan); }
+.safe.warn { color: var(--text); }
+.safe.warn svg { color: var(--red); }
+
+.trips { display: flex; gap: 9px; overflow-x: auto; margin: 0 -16px 4px; padding: 2px 16px 10px; scrollbar-width: none; }
+.trips::-webkit-scrollbar { display: none; }
+.trip-chip { position: relative; overflow: hidden; isolation: isolate; flex: none; display: flex; align-items: center; gap: 9px; max-width: 240px;
+  padding: 7px 13px 7px 7px; border-radius: 16px; border: 1px solid var(--line); background: var(--bg2); text-align: left;
+  animation: rise .55s var(--spring) backwards; transition: transform .4s var(--spring), border-color .4s; }
+.trip-chip:active { transform: scale(.96); }
+.trip-chip .tt { flex: none; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; overflow: hidden;
+  background: linear-gradient(135deg, var(--red-a), var(--cyan-a)); }
+.trip-chip .tt img { width: 100%; height: 100%; object-fit: cover; }
+.trip-chip .tw { min-width: 0; }
+.trip-chip b { display: block; font-size: 13px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trip-chip small { display: block; color: var(--hint); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trip-chip .tb { position: absolute; left: 0; bottom: 0; height: 2px; width: calc(var(--p, 0) * 100%);
+  background: linear-gradient(90deg, var(--red), var(--cyan)); transition: width .6s var(--ease); }
+.trip-chip.wait .tb { width: 40%; animation: scan 1.7s ease-in-out infinite; }
+.trip-chip.done { border-color: var(--cyan-line); }
+.trip-chip.done small { color: var(--cyan); }
+.trip-chip.failed { border-color: var(--red-a); }
+.trip-chip.failed small { color: var(--red); }
+@keyframes scan { from { transform: translateX(-110%); } to { transform: translateX(260%); } }
+
+.trip-media { display: flex; gap: 10px; margin: 14px 0 4px; }
+.trip-media .tm { position: relative; flex: 1; max-height: 200px; aspect-ratio: 4 / 3; border-radius: 16px; overflow: hidden; background: var(--bg2);
+  display: grid; place-items: center; animation: rise .6s var(--spring) backwards; }
+.trip-media .tm:nth-child(2) { animation-delay: 70ms; }
+.trip-media img, .trip-media video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.trip-media .tm::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.28) 50%, transparent 70%);
+  transform: translateX(-120%); }
+.sheet[data-s="seal"] .tm::after, .sheet[data-s="up"] .tm::after { animation: shine 1.6s ease-in-out infinite; }
+.sheet[data-s="seal"] .tm img, .sheet[data-s="seal"] .tm video { filter: blur(6px) saturate(.4); transition: filter .8s var(--ease); }
+.tm img, .tm video { transition: filter .8s var(--ease); }
+.stages { list-style: none; display: flex; padding: 0; margin: 24px -4px 6px; }
+.stages li { flex: 1; position: relative; padding-top: 20px; text-align: center; font-size: 11px; color: var(--hint); transition: color .5s; }
+.stages li::before { content: ""; position: absolute; z-index: 1; top: 0; left: 50%; width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%;
+  background: var(--bg3); transition: background .5s, box-shadow .5s, transform .6s var(--spring); }
+.stages li::after { content: ""; position: absolute; top: 4.5px; left: 50%; width: 100%; height: 2px; background: var(--bg3); }
+.stages li:last-child::after { display: none; }
+.stages li.ok { color: var(--text); }
+.stages li.ok::before { background: linear-gradient(90deg, var(--red), var(--cyan)); }
+.stages li.ok::after { background: linear-gradient(90deg, var(--red), var(--cyan)); }
+.stages li.now { color: var(--text); font-weight: 650; }
+.stages li.now::before { background: var(--text); transform: scale(1.35); box-shadow: var(--split), var(--glow); animation: beat 2.2s infinite; }
+.stages li.bad { color: var(--red); font-weight: 650; }
+.stages li.bad::before { background: var(--red); transform: scale(1.35); }
+.pct { font-size: 44px; font-weight: 800; letter-spacing: -.03em; margin: 14px 2px 0; text-shadow: var(--split); line-height: 1; }
+.pct small { font-size: 18px; font-weight: 700; margin-left: 2px; }
+.meter { position: relative; height: 8px; border-radius: 8px; background: var(--bg3); overflow: hidden; margin: 14px 0 10px; }
+.meter i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p, 0) * 100%); border-radius: inherit;
+  background: linear-gradient(90deg, var(--red), #b23ad8, var(--cyan)); background-size: 200% 100%; box-shadow: 0 0 14px var(--cyan-a);
+  animation: flow 2.4s linear infinite alternate; transition: width .55s var(--ease); }
+.meter.wait i { width: 38%; animation: scan 1.8s ease-in-out infinite, flow 2.4s linear infinite alternate; }
+.meter.done i { width: 100%; }
+.meter.bad i { width: 100%; background: var(--red); animation: none; opacity: .5; }
+.trip-x { font-size: 14.5px; margin: 4px 2px 0; min-height: 42px; }
+.trip-x.bad { color: var(--red); }
+.trip-ok { width: 66px; height: 66px; border-radius: 50%; display: grid; place-items: center; margin: 18px auto 0; color: #fff;
+  background: linear-gradient(135deg, var(--red), var(--cyan)); box-shadow: var(--glow), 0 0 0 8px var(--tint-c); animation: ok-in .9s var(--spring) backwards; }
+@keyframes ok-in { 0% { transform: scale(.3) rotate(-30deg); opacity: 0; box-shadow: -14px 0 0 var(--red), 14px 0 0 var(--cyan); } 100% { transform: none; } }
+.trip-ok svg { stroke-dasharray: 30; stroke-dashoffset: 30; animation: draw .6s .35s var(--ease) forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.duo { display: flex; gap: 10px; }
+.duo .ghost { margin-top: 16px; }
+.ghost.main { border-color: transparent; background: linear-gradient(var(--solid2), var(--solid2)) padding-box, linear-gradient(110deg, var(--red), var(--cyan)) border-box;
+  border: 1px solid transparent; font-weight: 650; }
 
 /* ---------- entrances ---------- */
 @keyframes rise { from { opacity: 0; transform: translateY(16px) scale(.98); } }
@@ -260,7 +371,7 @@ body.has-send:not(.in-sheet) { padding-bottom: calc(154px + env(safe-area-inset-
 <body>
 <div class="aurora" aria-hidden="true"><i></i><i></i></div>
 <div class="wrap" id="main">
-  <header><span class="brand" data-text="CutForge">CutForge</span><span class="ver">Studio · v0.5.0</span><span class="live" id="live"></span></header>
+  <header><span class="brand" data-text="CutForge">CutForge</span><span class="ver">Studio · v0.7.0</span><span class="tier hidden" id="tier"></span><span class="live" id="live"></span></header>
   <div class="search-wrap" id="searchWrap">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input class="search" id="search" placeholder="Suchen" autocomplete="off">
@@ -274,7 +385,7 @@ body.has-send:not(.in-sheet) { padding-bottom: calc(154px + env(safe-area-inset-
 
 <script>
 "use strict";
-const MENU = {"version": "0.5.0", "effects": [{"id": "explosion", "title": "Explosion", "group": "action", "desc": "Hinter dem Motiv explodiert alles – Feuerball, Druckwelle.", "motion": "crash_zoom_out", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} stands still as a huge fiery explosion erupts behind, shockwave, flying debris, cinematic action movie shot, loud explosion sound."}, {"id": "disintegrate", "title": "Zerfallen", "group": "magie", "desc": "Das Motiv zerfällt zu Staub und weht davon.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly disintegrates into glowing dust particles that drift away in the wind, magical, cinematic."}, {"id": "melt", "title": "Schmelzen", "group": "magie", "desc": "Das Motiv schmilzt wie Wachs.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} melts like hot wax, dripping down smoothly, surreal, highly detailed."}, {"id": "on_fire", "title": "In Flammen", "group": "action", "desc": "Flammen hüllen das Motiv ein.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} is engulfed in roaring flames, fire dancing around, embers flying, dramatic lighting, crackling fire sound."}, {"id": "levitate", "title": "Schweben", "group": "magie", "desc": "Das Motiv hebt ab und schwebt.", "motion": "crane_up", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly levitates off the ground and floats in the air, gentle wind, dreamy atmosphere."}, {"id": "metal", "title": "Zu Metall", "group": "verwandlung", "desc": "Verwandlung in glänzendes Chrom.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} transforms into shiny liquid chrome metal, reflective surface spreading over it, sci-fi."}, {"id": "freeze", "title": "Gefrieren", "group": "verwandlung", "desc": "Eis überzieht das Motiv.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} freezes as ice crystals rapidly spread over it, frost, cold breath, crackling ice sound."}, {"id": "stone", "title": "Versteinern", "group": "verwandlung", "desc": "Das Motiv wird zur Steinstatue.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly turns into a cracked stone statue, dust falling, dramatic."}, {"id": "gold", "title": "Gold", "group": "verwandlung", "desc": "Goldener Glanz breitet sich aus.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} turns into polished gold, glittering reflections, luxurious lighting."}, {"id": "hologram", "title": "Hologramm", "group": "scifi", "desc": "Wird zum flackernden Hologramm.", "motion": "arc_right", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} turns into a flickering blue hologram with scan lines and glitches, futuristic."}, {"id": "cyborg", "title": "Cyborg", "group": "scifi", "desc": "Mechanische Teile kommen zum Vorschein.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} transforms into a cyborg, skin opening to reveal glowing mechanical parts and wires, sci-fi."}, {"id": "lightning", "title": "Blitze", "group": "action", "desc": "Elektrische Blitze zucken um das Motiv.", "motion": "crash_zoom_in", "seconds": 4, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} is surrounded by crackling electric lightning bolts, glowing energy, thunder sound."}, {"id": "portal", "title": "Portal", "group": "magie", "desc": "Ein leuchtendes Portal öffnet sich.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "a glowing magical portal opens behind {subject}, swirling energy, light pouring out."}, {"id": "wings", "title": "Flügel", "group": "magie", "desc": "Große Engelsflügel wachsen.", "motion": "crane_up", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "large white feathered wings unfold from the back of {subject}, feathers floating, heavenly light."}, {"id": "snow_globe", "title": "Schneekugel", "group": "magie", "desc": "Die Szene wird zur Schneekugel.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} inside a snow globe, the globe is shaken and snowflakes swirl around, cozy."}, {"id": "rain_drama", "title": "Regen-Drama", "group": "stimmung", "desc": "Heftiger Regen, dramatisches Licht.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} in heavy dramatic rain, wet hair and clothes, cinematic backlight, rain sound."}, {"id": "wind_hair", "title": "Wind im Haar", "group": "stimmung", "desc": "Starker Wind, flatternde Haare und Kleidung.", "motion": "arc_left", "seconds": 4, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} with hair and clothes blowing in strong wind, cinematic, golden hour light."}, {"id": "hug", "title": "Umarmung", "group": "menschen", "desc": "Die Personen im Bild umarmen sich.", "motion": "dolly_in", "seconds": 5, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "the people in the image ({subject}) turn to each other and share a warm hug, emotional, natural motion."}, {"id": "dance", "title": "Tanzen", "group": "menschen", "desc": "Die Person beginnt zu tanzen.", "motion": "orbit_360", "seconds": 6, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "{subject} starts dancing energetically to upbeat music, natural body movement, music playing."}, {"id": "smile", "title": "Lächeln", "group": "menschen", "desc": "Ein natürliches Lächeln und Blick in die Kamera.", "motion": "static", "seconds": 4, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "{subject} looks into the camera and breaks into a warm natural smile, subtle head movement."}, {"id": "talk", "title": "Sprechen", "group": "menschen", "desc": "Die Person spricht einen Satz (Text unten eingeben).", "motion": "static", "seconds": 6, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} looks into the camera and speaks clearly with natural lip movement and expressions."}, {"id": "zoom_eye", "title": "Ins Auge", "group": "spektakel", "desc": "Zoom ins Auge – dahinter eine andere Welt.", "motion": "crash_zoom_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "the camera zooms extremely close into the eye of {subject}, the iris turns into a vast cosmic galaxy."}, {"id": "earth_zoom_out", "title": "Bis ins All", "group": "spektakel", "desc": "Von der Person bis hinaus ins Weltall.", "motion": "crash_zoom_out", "seconds": 6, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "an epic zoom out from {subject} up through the clouds into outer space, the earth becomes visible."}, {"id": "paper", "title": "Papier-Origami", "group": "verwandlung", "desc": "Faltet sich zu Origami.", "motion": "arc_right", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} folds itself into an intricate paper origami figure, crisp paper texture."}], "motions": [{"id": "none", "title": "Frei", "group": "basis"}, {"id": "static", "title": "Stativ", "group": "basis"}, {"id": "dolly_in", "title": "Dolly rein", "group": "basis"}, {"id": "dolly_out", "title": "Dolly raus", "group": "basis"}, {"id": "crash_zoom_in", "title": "Crash-Zoom", "group": "dynamisch"}, {"id": "crash_zoom_out", "title": "Crash-Zoom raus", "group": "dynamisch"}, {"id": "orbit_360", "title": "360°-Orbit", "group": "dynamisch"}, {"id": "arc_left", "title": "Bogen links", "group": "basis"}, {"id": "arc_right", "title": "Bogen rechts", "group": "basis"}, {"id": "crane_up", "title": "Kran hoch", "group": "kino"}, {"id": "crane_down", "title": "Kran runter", "group": "kino"}, {"id": "fpv_drone", "title": "FPV-Drohne", "group": "dynamisch"}, {"id": "aerial", "title": "Luftaufnahme", "group": "kino"}, {"id": "bullet_time", "title": "Bullet Time", "group": "dynamisch"}, {"id": "handheld", "title": "Handkamera", "group": "basis"}, {"id": "pan_left", "title": "Schwenk links", "group": "basis"}, {"id": "pan_right", "title": "Schwenk rechts", "group": "basis"}, {"id": "tilt_up", "title": "Neigung hoch", "group": "basis"}, {"id": "tilt_down", "title": "Neigung runter", "group": "basis"}, {"id": "dolly_zoom", "title": "Vertigo", "group": "kino"}, {"id": "whip_pan", "title": "Reißschwenk", "group": "dynamisch"}, {"id": "tracking", "title": "Verfolgung", "group": "kino"}, {"id": "follow_behind", "title": "Hinterher", "group": "kino"}, {"id": "push_low", "title": "Froschperspektive", "group": "kino"}, {"id": "top_down", "title": "Von oben", "group": "kino"}, {"id": "earth_zoom", "title": "Zoom aus dem All", "group": "spektakel"}, {"id": "timelapse", "title": "Zeitraffer", "group": "spektakel"}, {"id": "snorricam", "title": "Körperkamera", "group": "spektakel"}, {"id": "rack_focus", "title": "Schärfe ziehen", "group": "kino"}], "models": [{"id": "ltx25", "title": "LTX-2.5", "available": true, "good": "Allrounder: Text oder Bild → Video bis 10 s mit passendem Ton, folgt Kamera-Anweisungen am besten, Start- und Endbild, Verlängern"}, {"id": "hunyuan15", "title": "HunyuanVideo 1.5", "available": true, "good": "Schnelle Entwürfe und Ideen ausprobieren, ruhige Szenen; ohne Ton"}, {"id": "minimax", "title": "MiniMax H3", "available": true, "good": "Dieselbe Figur aus bis zu 3 Referenzbildern, Personen die sprechen (Dialog mit Lippen), mit Ton"}], "imageModels": [{"id": "qwen21", "title": "Qwen-Image 2.1", "available": true, "good": "Hält sich am genauesten an lange Prompts, schreibt lesbare Schrift ins Bild (Plakate, Logos, Schilder), viele Personen und Details; kann auch Bilder bearbeiten"}, {"id": "krea2", "title": "Krea 2 Turbo", "available": true, "good": "Sehr fotorealistisch mit ästhetischem Look (Mode, Produkt, Landschaft); am schnellsten"}, {"id": "flux1dev", "title": "FLUX.1-dev", "available": true, "good": "Natürliche Fotos und Porträts (Haut, Licht); bewährter Klassiker mit riesiger LoRA-Auswahl"}], "apps": [{"id": "upscale", "title": "Hochskalieren", "desc": "Schärfer und größer bis 4K (SeedVR2).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "upscale_fast", "title": "Schnell hochskalieren", "desc": "Schneller Upscale (FlashVSR).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "smooth", "title": "Flüssiger", "desc": "50/60 Bilder pro Sekunde (RIFE).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "slowmo", "title": "Zeitlupe", "desc": "Echte Zeitlupe 2×/4×.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "night", "title": "Tag → Nacht", "desc": "Dieselbe Szene bei Nacht.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "relight", "title": "Licht & Tageszeit", "desc": "Goldene/blaue Stunde, bewölkt, Tag.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "style", "title": "Stil", "desc": "Anime, Film Noir, Ölgemälde, Claymation …", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "weather", "title": "Wetter", "desc": "Schnee, Regen, Gewitter, Nebel, Jahreszeit.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "outfit", "title": "Outfit ändern", "desc": "Kleidung per Text ändern.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "swap", "title": "Figur tauschen (alt · SCAIL-2)", "desc": "Ältere Variante – im Vergleich langsamer und weniger ähnlich; besser „Figur tauschen · OpenJutsu“.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "animate", "title": "Figur animieren", "desc": "Figur aus Foto bewegt sich wie im Video.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "remove", "title": "Objekt entfernen", "desc": "Begriff eingeben – VOID entfernt es samt Schatten.", "input": "video", "reference": null, "maskText": true, "audio": null, "openjutsu": null, "generate": null}, {"id": "extend", "title": "Verlängern", "desc": "Video nahtlos weiterlaufen lassen.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": "erstellen_verlaengern"}, {"id": "foley", "title": "Geräusche", "desc": "Passender Ton zum Bild.", "input": "video", "reference": null, "maskText": null, "audio": "foley", "openjutsu": null, "generate": null}, {"id": "subtitles", "title": "Untertitel", "desc": "Gesprochenes als Untertitel-Datei.", "input": "video", "reference": null, "maskText": null, "audio": "subtitles", "openjutsu": null, "generate": null}, {"id": "voice", "title": "Sprecher", "desc": "Deutscher Sprecher aus Text (VoxCPM2).", "input": "none", "reference": null, "maskText": null, "audio": "tts", "openjutsu": null, "generate": null}, {"id": "music", "title": "Musik", "desc": "Musik nach Stil und Länge (ACE-Step).", "input": "none", "reference": null, "maskText": null, "audio": "music", "openjutsu": null, "generate": null}, {"id": "weather_fx", "title": "Wetter-Effekt (ohne KI)", "desc": "Schnee/Regen/Blitz-Ebene sofort.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "oj_swap", "title": "Figur tauschen · OpenJutsu", "desc": "Die Hauptperson wird zur Figur aus deinem Foto – Kamera, Schnitte, Bewegung und Ton bleiben.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": "simple", "generate": null}, {"id": "oj_object", "title": "Objekt ändern · OpenJutsu", "desc": "Haare, Kleidung, Dinge ändern oder entfernen, oder den Hintergrund um eine Person tauschen.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": "object", "generate": null}, {"id": "oj_mask", "title": "Tausch-Maske prüfen", "desc": "Zeigt in ca. 1 Minute, welcher Bereich getauscht würde (cyan) und die Bewegungs-Vorlage.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": "mask", "generate": null}], "video": {"ltx25": {"default": "720p", "render": [{"id": "540p", "note": "Entwurf, schnell"}, {"id": "720p", "note": "Standard"}, {"id": "1080p", "note": "≈ 2,5× Rechenzeit"}, {"id": "1440p", "note": "≈ 5× Rechenzeit, viel VRAM"}, {"id": "2160p", "note": "4K – sehr langsam, auf 24 GB nur kurze Clips"}]}, "hunyuan15": {"default": "720p", "render": [{"id": "480p", "note": "schnell"}, {"id": "720p", "note": "Standard"}]}, "minimax": {"default": "768p", "render": [{"id": "768p", "note": "die einzige native Größe des Modells"}]}}, "image": {"qwen21": {"render": [{"id": "1k", "note": "≈ 1 MP, schnell", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "≈ 4 MP – die volle native Auflösung, ≈ 4× Rechenzeit", "sizes": {"16:9": "2752×1536", "9:16": "1536×2752", "1:1": "2048×2048", "4:3": "2400×1792", "3:4": "1792×2400", "4:5": "1760×2208", "3:2": "2528×1696", "2:3": "1696×2528", "21:9": "3040×1280"}}]}, "krea2": {"render": [{"id": "1k", "note": "≈ 1 MP", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "bis 2048 px, ≈ 4× Zeit", "sizes": {"16:9": "2048×1152", "9:16": "1152×2048", "1:1": "2048×2048", "4:3": "2048×1536", "3:4": "1536×2048", "4:5": "1632×2048", "3:2": "2048×1360", "2:3": "1360×2048", "21:9": "2048×1024"}}]}, "flux1dev": {"render": [{"id": "1k", "note": "≈ 1 MP", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "2 MP – das Maximum", "sizes": {"16:9": "1872×1056", "9:16": "1056×1872", "1:1": "1408×1408", "4:3": "1632×1216", "3:4": "1216×1632", "4:5": "1264×1568", "3:2": "1728×1152", "2:3": "1152×1728", "21:9": "2160×912"}}]}}, "upscale": [{"id": "1080p", "note": "KI-Schärfen SeedVR2, ≈ 13 min je 5 s"}, {"id": "1440p", "note": "KI-Schärfen SeedVR2, ≈ 25 min je 5 s"}, {"id": "2160p", "note": "KI-Schärfen SeedVR2, sehr langsam, 4K offiziell nicht erprobt"}], "aspects": [{"id": "16:9", "label": "16:9 Querformat (YouTube, TV)"}, {"id": "9:16", "label": "9:16 Hochformat (Reels, TikTok, Shorts)"}, {"id": "1:1", "label": "1:1 Quadrat"}, {"id": "4:3", "label": "4:3 klassisch"}, {"id": "3:4", "label": "3:4 hoch"}, {"id": "4:5", "label": "4:5 hoch (Instagram-Feed)"}, {"id": "3:2", "label": "3:2 Foto quer"}, {"id": "2:3", "label": "2:3 Foto hoch / Poster"}, {"id": "21:9", "label": "21:9 Kino-Breitbild"}]};
+const MENU = {"version": "0.7.0", "box": {"url": "https://cutforge-briefkasten.dada-cutforge.workers.dev", "key": "MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAssPph+FlSsO7kcSeeKOo1NESjeILoWNUxJobailLbRfXncL5B316STA/tFBUjmvDWPvgobU7pMuzHnzMJYWGiJ77FRJQNO7zBvrRuVqxVwo9C5xwinbkqSIxxw5oNZEdj2DsFT5ixLpLlgdhTt6wLdrvfO/rTXZXEfpvqDlXnl1Gpn3itjG6cUtPvRtl0LLXrE2qTTQsewwDIs0Wg+BCJ3S9Iih+vDTsHvgNoJ5YWmeGLVppXmrXPDtR4eFqrP6ayubIvWvLT3rVmTdExkW6Gy/aElFkByxv4V7/nNkzthOHMNQFsOyTLqh8o6GwT/tgkwYmeTFSfMO5nezpCGaVk3mX4DmYyW/lFooNUtuRXfteGLstG6DstPznd6Uo6DXoR7ZTXbYntknPIzjpXxP/c5WW4kGRYM0DpLy6W5kCl/9ObJw2drLMRQn9Rh7QlE+Sjqx5IiCW9R4mGxTIR4ySRqr8e4uwafg+IbH+EGnuqKST2n2VqB5QsH4td1b3jXJLAgMBAAE="}, "effects": [{"id": "explosion", "title": "Explosion", "group": "action", "desc": "Hinter dem Motiv explodiert alles – Feuerball, Druckwelle.", "motion": "crash_zoom_out", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} stands still as a huge fiery explosion erupts behind, shockwave, flying debris, cinematic action movie shot, loud explosion sound."}, {"id": "disintegrate", "title": "Zerfallen", "group": "magie", "desc": "Das Motiv zerfällt zu Staub und weht davon.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly disintegrates into glowing dust particles that drift away in the wind, magical, cinematic."}, {"id": "melt", "title": "Schmelzen", "group": "magie", "desc": "Das Motiv schmilzt wie Wachs.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} melts like hot wax, dripping down smoothly, surreal, highly detailed."}, {"id": "on_fire", "title": "In Flammen", "group": "action", "desc": "Flammen hüllen das Motiv ein.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} is engulfed in roaring flames, fire dancing around, embers flying, dramatic lighting, crackling fire sound."}, {"id": "levitate", "title": "Schweben", "group": "magie", "desc": "Das Motiv hebt ab und schwebt.", "motion": "crane_up", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly levitates off the ground and floats in the air, gentle wind, dreamy atmosphere."}, {"id": "metal", "title": "Zu Metall", "group": "verwandlung", "desc": "Verwandlung in glänzendes Chrom.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} transforms into shiny liquid chrome metal, reflective surface spreading over it, sci-fi."}, {"id": "freeze", "title": "Gefrieren", "group": "verwandlung", "desc": "Eis überzieht das Motiv.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} freezes as ice crystals rapidly spread over it, frost, cold breath, crackling ice sound."}, {"id": "stone", "title": "Versteinern", "group": "verwandlung", "desc": "Das Motiv wird zur Steinstatue.", "motion": "static", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} slowly turns into a cracked stone statue, dust falling, dramatic."}, {"id": "gold", "title": "Gold", "group": "verwandlung", "desc": "Goldener Glanz breitet sich aus.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} turns into polished gold, glittering reflections, luxurious lighting."}, {"id": "hologram", "title": "Hologramm", "group": "scifi", "desc": "Wird zum flackernden Hologramm.", "motion": "arc_right", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} turns into a flickering blue hologram with scan lines and glitches, futuristic."}, {"id": "cyborg", "title": "Cyborg", "group": "scifi", "desc": "Mechanische Teile kommen zum Vorschein.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} transforms into a cyborg, skin opening to reveal glowing mechanical parts and wires, sci-fi."}, {"id": "lightning", "title": "Blitze", "group": "action", "desc": "Elektrische Blitze zucken um das Motiv.", "motion": "crash_zoom_in", "seconds": 4, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} is surrounded by crackling electric lightning bolts, glowing energy, thunder sound."}, {"id": "portal", "title": "Portal", "group": "magie", "desc": "Ein leuchtendes Portal öffnet sich.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "a glowing magical portal opens behind {subject}, swirling energy, light pouring out."}, {"id": "wings", "title": "Flügel", "group": "magie", "desc": "Große Engelsflügel wachsen.", "motion": "crane_up", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "large white feathered wings unfold from the back of {subject}, feathers floating, heavenly light."}, {"id": "snow_globe", "title": "Schneekugel", "group": "magie", "desc": "Die Szene wird zur Schneekugel.", "motion": "orbit_360", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} inside a snow globe, the globe is shaken and snowflakes swirl around, cozy."}, {"id": "rain_drama", "title": "Regen-Drama", "group": "stimmung", "desc": "Heftiger Regen, dramatisches Licht.", "motion": "dolly_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} in heavy dramatic rain, wet hair and clothes, cinematic backlight, rain sound."}, {"id": "wind_hair", "title": "Wind im Haar", "group": "stimmung", "desc": "Starker Wind, flatternde Haare und Kleidung.", "motion": "arc_left", "seconds": 4, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} with hair and clothes blowing in strong wind, cinematic, golden hour light."}, {"id": "hug", "title": "Umarmung", "group": "menschen", "desc": "Die Personen im Bild umarmen sich.", "motion": "dolly_in", "seconds": 5, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "the people in the image ({subject}) turn to each other and share a warm hug, emotional, natural motion."}, {"id": "dance", "title": "Tanzen", "group": "menschen", "desc": "Die Person beginnt zu tanzen.", "motion": "orbit_360", "seconds": 6, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "{subject} starts dancing energetically to upbeat music, natural body movement, music playing."}, {"id": "smile", "title": "Lächeln", "group": "menschen", "desc": "Ein natürliches Lächeln und Blick in die Kamera.", "motion": "static", "seconds": 4, "empfohlen": "minimax", "empfohlen_grund": "Gesichter aus dem Foto bleiben am treuesten", "prompt": "{subject} looks into the camera and breaks into a warm natural smile, subtle head movement."}, {"id": "talk", "title": "Sprechen", "group": "menschen", "desc": "Die Person spricht einen Satz (Text unten eingeben).", "motion": "static", "seconds": 6, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} looks into the camera and speaks clearly with natural lip movement and expressions."}, {"id": "zoom_eye", "title": "Ins Auge", "group": "spektakel", "desc": "Zoom ins Auge – dahinter eine andere Welt.", "motion": "crash_zoom_in", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "the camera zooms extremely close into the eye of {subject}, the iris turns into a vast cosmic galaxy."}, {"id": "earth_zoom_out", "title": "Bis ins All", "group": "spektakel", "desc": "Von der Person bis hinaus ins Weltall.", "motion": "crash_zoom_out", "seconds": 6, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "an epic zoom out from {subject} up through the clouds into outer space, the earth becomes visible."}, {"id": "paper", "title": "Papier-Origami", "group": "verwandlung", "desc": "Faltet sich zu Origami.", "motion": "arc_right", "seconds": 5, "empfohlen": "ltx25", "empfohlen_grund": "mit passendem Ton, alle Auflösungen", "prompt": "{subject} folds itself into an intricate paper origami figure, crisp paper texture."}], "motions": [{"id": "none", "title": "Frei", "group": "basis"}, {"id": "static", "title": "Stativ", "group": "basis"}, {"id": "dolly_in", "title": "Dolly rein", "group": "basis"}, {"id": "dolly_out", "title": "Dolly raus", "group": "basis"}, {"id": "crash_zoom_in", "title": "Crash-Zoom", "group": "dynamisch"}, {"id": "crash_zoom_out", "title": "Crash-Zoom raus", "group": "dynamisch"}, {"id": "orbit_360", "title": "360°-Orbit", "group": "dynamisch"}, {"id": "arc_left", "title": "Bogen links", "group": "basis"}, {"id": "arc_right", "title": "Bogen rechts", "group": "basis"}, {"id": "crane_up", "title": "Kran hoch", "group": "kino"}, {"id": "crane_down", "title": "Kran runter", "group": "kino"}, {"id": "fpv_drone", "title": "FPV-Drohne", "group": "dynamisch"}, {"id": "aerial", "title": "Luftaufnahme", "group": "kino"}, {"id": "bullet_time", "title": "Bullet Time", "group": "dynamisch"}, {"id": "handheld", "title": "Handkamera", "group": "basis"}, {"id": "pan_left", "title": "Schwenk links", "group": "basis"}, {"id": "pan_right", "title": "Schwenk rechts", "group": "basis"}, {"id": "tilt_up", "title": "Neigung hoch", "group": "basis"}, {"id": "tilt_down", "title": "Neigung runter", "group": "basis"}, {"id": "dolly_zoom", "title": "Vertigo", "group": "kino"}, {"id": "whip_pan", "title": "Reißschwenk", "group": "dynamisch"}, {"id": "tracking", "title": "Verfolgung", "group": "kino"}, {"id": "follow_behind", "title": "Hinterher", "group": "kino"}, {"id": "push_low", "title": "Froschperspektive", "group": "kino"}, {"id": "top_down", "title": "Von oben", "group": "kino"}, {"id": "earth_zoom", "title": "Zoom aus dem All", "group": "spektakel"}, {"id": "timelapse", "title": "Zeitraffer", "group": "spektakel"}, {"id": "snorricam", "title": "Körperkamera", "group": "spektakel"}, {"id": "rack_focus", "title": "Schärfe ziehen", "group": "kino"}], "models": [{"id": "ltx25", "title": "LTX-2.5", "available": true, "good": "Allrounder: Text oder Bild → Video bis 10 s mit passendem Ton, folgt Kamera-Anweisungen am besten, Start- und Endbild, Verlängern"}, {"id": "hunyuan15", "title": "HunyuanVideo 1.5", "available": true, "good": "Schnelle Entwürfe und Ideen ausprobieren, ruhige Szenen; ohne Ton"}, {"id": "minimax", "title": "MiniMax H3", "available": true, "good": "Dieselbe Figur aus bis zu 3 Referenzbildern, Personen die sprechen (Dialog mit Lippen), mit Ton"}], "imageModels": [{"id": "qwen21", "title": "Qwen-Image 2.1", "available": true, "good": "Hält sich am genauesten an lange Prompts, schreibt lesbare Schrift ins Bild (Plakate, Logos, Schilder), viele Personen und Details; kann auch Bilder bearbeiten"}, {"id": "krea2", "title": "Krea 2 Turbo", "available": true, "good": "Sehr fotorealistisch mit ästhetischem Look (Mode, Produkt, Landschaft); am schnellsten"}, {"id": "flux1dev", "title": "FLUX.1-dev", "available": true, "good": "Natürliche Fotos und Porträts (Haut, Licht); bewährter Klassiker mit riesiger LoRA-Auswahl"}], "apps": [{"id": "upscale", "title": "Hochskalieren", "desc": "Schärfer und größer bis 4K (SeedVR2).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "upscale_fast", "title": "Schnell hochskalieren", "desc": "Schneller Upscale (FlashVSR).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "smooth", "title": "Flüssiger", "desc": "50/60 Bilder pro Sekunde (RIFE).", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "slowmo", "title": "Zeitlupe", "desc": "Echte Zeitlupe 2×/4×.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "night", "title": "Tag → Nacht", "desc": "Dieselbe Szene bei Nacht.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "relight", "title": "Licht & Tageszeit", "desc": "Goldene/blaue Stunde, bewölkt, Tag.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "style", "title": "Stil", "desc": "Anime, Film Noir, Ölgemälde, Claymation …", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "weather", "title": "Wetter", "desc": "Schnee, Regen, Gewitter, Nebel, Jahreszeit.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "outfit", "title": "Outfit ändern", "desc": "Kleidung per Text ändern.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "swap", "title": "Figur tauschen (alt · SCAIL-2)", "desc": "Ältere Variante – im Vergleich langsamer und weniger ähnlich; besser „Figur tauschen · OpenJutsu“.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "animate", "title": "Figur animieren", "desc": "Figur aus Foto bewegt sich wie im Video.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "remove", "title": "Objekt entfernen", "desc": "Begriff eingeben – VOID entfernt es samt Schatten.", "input": "video", "reference": null, "maskText": true, "audio": null, "openjutsu": null, "generate": null}, {"id": "extend", "title": "Verlängern", "desc": "Video nahtlos weiterlaufen lassen.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": "erstellen_verlaengern"}, {"id": "foley", "title": "Geräusche", "desc": "Passender Ton zum Bild.", "input": "video", "reference": null, "maskText": null, "audio": "foley", "openjutsu": null, "generate": null}, {"id": "subtitles", "title": "Untertitel", "desc": "Gesprochenes als Untertitel-Datei.", "input": "video", "reference": null, "maskText": null, "audio": "subtitles", "openjutsu": null, "generate": null}, {"id": "voice", "title": "Sprecher", "desc": "Deutscher Sprecher aus Text (VoxCPM2).", "input": "none", "reference": null, "maskText": null, "audio": "tts", "openjutsu": null, "generate": null}, {"id": "music", "title": "Musik", "desc": "Musik nach Stil und Länge (ACE-Step).", "input": "none", "reference": null, "maskText": null, "audio": "music", "openjutsu": null, "generate": null}, {"id": "weather_fx", "title": "Wetter-Effekt (ohne KI)", "desc": "Schnee/Regen/Blitz-Ebene sofort.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": null, "generate": null}, {"id": "oj_swap", "title": "Figur tauschen · OpenJutsu", "desc": "Die Hauptperson wird zur Figur aus deinem Foto – Kamera, Schnitte, Bewegung und Ton bleiben.", "input": "video", "reference": true, "maskText": null, "audio": null, "openjutsu": "simple", "generate": null}, {"id": "oj_object", "title": "Objekt ändern · OpenJutsu", "desc": "Haare, Kleidung, Dinge ändern oder entfernen, oder den Hintergrund um eine Person tauschen.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": "object", "generate": null}, {"id": "oj_mask", "title": "Tausch-Maske prüfen", "desc": "Zeigt in ca. 1 Minute, welcher Bereich getauscht würde (cyan) und die Bewegungs-Vorlage.", "input": "video", "reference": null, "maskText": null, "audio": null, "openjutsu": "mask", "generate": null}], "video": {"ltx25": {"default": "720p", "render": [{"id": "540p", "note": "Entwurf, schnell"}, {"id": "720p", "note": "Standard"}, {"id": "1080p", "note": "≈ 2,5× Rechenzeit"}, {"id": "1440p", "note": "≈ 5× Rechenzeit, viel VRAM"}, {"id": "2160p", "note": "4K – sehr langsam, auf 24 GB nur kurze Clips"}]}, "hunyuan15": {"default": "720p", "render": [{"id": "480p", "note": "schnell"}, {"id": "720p", "note": "Standard"}]}, "minimax": {"default": "768p", "render": [{"id": "768p", "note": "die einzige native Größe des Modells"}]}}, "image": {"qwen21": {"render": [{"id": "1k", "note": "≈ 1 MP, schnell", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "≈ 4 MP – die volle native Auflösung, ≈ 4× Rechenzeit", "sizes": {"16:9": "2752×1536", "9:16": "1536×2752", "1:1": "2048×2048", "4:3": "2400×1792", "3:4": "1792×2400", "4:5": "1760×2208", "3:2": "2528×1696", "2:3": "1696×2528", "21:9": "3040×1280"}}]}, "krea2": {"render": [{"id": "1k", "note": "≈ 1 MP", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "bis 2048 px, ≈ 4× Zeit", "sizes": {"16:9": "2048×1152", "9:16": "1152×2048", "1:1": "2048×2048", "4:3": "2048×1536", "3:4": "1536×2048", "4:5": "1632×2048", "3:2": "2048×1360", "2:3": "1360×2048", "21:9": "2048×1024"}}]}, "flux1dev": {"render": [{"id": "1k", "note": "≈ 1 MP", "sizes": {"16:9": "1344×768", "9:16": "768×1344", "1:1": "1024×1024", "4:3": "1152×864", "3:4": "864×1152", "4:5": "928×1152", "3:2": "1248×832", "2:3": "832×1248", "21:9": "1536×640"}}, {"id": "2k", "note": "2 MP – das Maximum", "sizes": {"16:9": "1872×1056", "9:16": "1056×1872", "1:1": "1408×1408", "4:3": "1632×1216", "3:4": "1216×1632", "4:5": "1264×1568", "3:2": "1728×1152", "2:3": "1152×1728", "21:9": "2160×912"}}]}}, "upscale": [{"id": "1080p", "note": "KI-Schärfen SeedVR2, ≈ 13 min je 5 s"}, {"id": "1440p", "note": "KI-Schärfen SeedVR2, ≈ 25 min je 5 s"}, {"id": "2160p", "note": "KI-Schärfen SeedVR2, sehr langsam, 4K offiziell nicht erprobt"}], "aspects": [{"id": "16:9", "label": "16:9 Querformat (YouTube, TV)"}, {"id": "9:16", "label": "9:16 Hochformat (Reels, TikTok, Shorts)"}, {"id": "1:1", "label": "1:1 Quadrat"}, {"id": "4:3", "label": "4:3 klassisch"}, {"id": "3:4", "label": "3:4 hoch"}, {"id": "4:5", "label": "4:5 hoch (Instagram-Feed)"}, {"id": "3:2", "label": "3:2 Foto quer"}, {"id": "2:3", "label": "2:3 Foto hoch / Poster"}, {"id": "21:9", "label": "21:9 Kino-Breitbild"}]};
 const tg = window.Telegram && window.Telegram.WebApp;
 const inTelegram = !!(tg && tg.initData);
 
@@ -292,6 +403,8 @@ const P = {
   menschen: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.5"/><path d="M15 14.3A5 5 0 0 1 21 19"/>',
   spektakel: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v5M21 12h-5M12 21v-5M3 12h5"/>',
   star: '<path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 9.7l5.4-.8z"/>',
+  lock: '<rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  check: '<path d="m6 12.5 4 4 8-9"/>', chat: '<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4z"/>',
   chev: '<path d="m9 6 6 6-6 6"/>', close: '<path d="M6 6l12 12M18 6 6 18"/>', copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
 };
 const icon = (n, s = 22, fill = "none") => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${fill}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${P[n] || P.fx}</svg>`;
@@ -362,12 +475,275 @@ function encodeOrder(o) {
   return `CF1.${body}.${(crc32(bytes) & 0xFFFFFF).toString(16).padStart(6, "0")}`;
 }
 
+/* ---------- Briefkasten: the order with its photos/videos straight to the PC ----------
+   Everything is encrypted here for the PC (RSA-OAEP wraps a fresh AES-256-GCM key; IV + ciphertext, additional data
+   "man" / "part:<n>", 1 MiB per part) and goes to the Cloudflare Worker, which only checks who sends (Telegram's
+   signature) and keeps unreadable bytes until the PC fetches them. Without it: the bot asks for the photos in the chat. */
+const BOX = inTelegram && MENU.box && MENU.box.url && window.crypto && crypto.subtle ? MENU.box : null;
+const PART = 1 << 20, MAX_UPLOAD = 190 * PART;
+let boxOk = false, boxPc = null;
+const picks = {};                          // slot -> {file, url, kind}
+let fresh = null;                          // the slot picked just now (its tile plays its entrance once)
+let trips = [];                            // orders sent from here: {key, id, token, title, k, s, x, p, t, pc, thumbs, order, files}
+const ENDED = ["done", "failed"];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const mb = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace(".", ",")} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+const toB64 = (buf) => { const b = new Uint8Array(buf); let s = ""; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); };
+const fromB64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const say = (text) => { try { tg.showAlert(text); } catch (e) { alert(text); } };
+
+function needsOf(o) {                      // same as orders.needs
+  if (!o) return [];
+  const img = (slot, label, the) => ({ slot, kind: "image", label, the });
+  if (o.k === "fx") return [img("first", "Foto", "das Foto"), ...(o.le ? [img("last", "Endbild", "das Endbild")] : [])];
+  if (o.k === "vid") return o.src === "photo" ? [img("first", "Startbild", "das Startbild")] : o.src === "photos" ? [img("first", "Startbild", "das Startbild"), img("last", "Endbild", "das Endbild")] : [];
+  if (o.k === "img") return o.src === "edit1" ? [img("img1", "Foto", "das Foto")] : o.src === "edit2" ? [img("img1", "Foto 1", "Foto 1"), img("img2", "Foto 2", "Foto 2")] : [];
+  const a = MENU.apps.find((x) => x.id === o.e) || {};
+  return [...(!a.input || a.input === "video" ? [{ slot: "video", kind: "video", label: "Video", the: "das Video" }] : []),
+    ...(a.reference ? [img("reference", "Foto der Figur", "ein Foto der Figur")] : [])];
+}
+function pcNote() {
+  return boxPc !== null && boxPc > 90 ? `<p class="safe warn">${icon("lock", 14)} Dein PC ist gerade nicht erreichbar – der Auftrag wartet bis zu 2 Stunden auf ihn.</p>` : "";
+}
+function pickHtml(list) {
+  if (!list.length) return "";
+  const tiles = list.map((n) => {
+    const p = picks[n.slot];
+    const input = `<input class="file" type="file" accept="${n.kind}/*" data-file="${n.slot}" data-kind="${n.kind}">`;
+    if (!p) {
+      return `<div class="pick${fresh === n.slot ? " fresh" : ""}" data-slot="${n.slot}"><label>${input}<span class="pi">${icon(n.kind === "video" ? "video" : "image", 22)}</span>`
+        + `<span class="pl">${esc(n.label)}</span><span class="ps">${n.kind === "video" ? "Video wählen" : "Foto wählen oder aufnehmen"}</span></label></div>`;
+    }
+    const media = p.kind === "video" ? `<video src="${p.url}#t=0.1" muted playsinline preload="metadata"></video>` : `<img src="${p.url}" alt="">`;
+    return `<div class="pick has${fresh === n.slot ? " fresh" : ""}" data-slot="${n.slot}"><label>${input}${media}<span class="cap"><span class="pl">${esc(n.label)}</span>`
+      + `<span class="ps">${mb(p.file.size)}</span></span></label><button class="px" data-unpick="${n.slot}" title="Entfernen">${icon("close", 14)}</button></div>`;
+  }).join("");
+  return `<div class="picks${list.length === 1 ? " one" : ""}">${tiles}</div><p class="safe">${icon("lock", 14)} Verschlüsselt – nur dein PC kann die Dateien öffnen.</p>${pcNote()}`;
+}
+function needsBlock(list, text) {          // pickers with the Briefkasten, else what to send the bot afterwards
+  if (boxOk) return pickHtml(list);
+  return text ? `<span class="needs">${icon(list.some((n) => n.kind === "video") ? "video" : "image", 16)} Danach schickst du: ${text}</span>` : "";
+}
+function onPick(el) {
+  const f = el.files && el.files[0];
+  if (!f) return;
+  const kind = el.dataset.kind, slot = el.dataset.file;
+  if (f.type && !f.type.startsWith(`${kind}/`)) { say(kind === "video" ? "Bitte ein Video wählen." : "Bitte ein Foto wählen."); return; }
+  if (picks[slot]) URL.revokeObjectURL(picks[slot].url);
+  picks[slot] = { file: f, url: URL.createObjectURL(f), kind };
+  fresh = slot; haptic("medium");
+  if (sheet) renderSheet(); else render();
+  fresh = null;
+}
+function unpick(slot) {
+  if (!picks[slot]) return;
+  URL.revokeObjectURL(picks[slot].url);
+  delete picks[slot];
+  tick();
+  if (sheet) renderSheet(); else render();
+}
+
+async function boxCall(method, path, { body, token, raw } = {}) {
+  const headers = token ? { "X-Up-Token": token } : { "X-Init-Data": tg.initData };
+  if (body !== undefined) headers["Content-Type"] = raw ? "application/octet-stream" : "application/json";
+  let r;
+  try {
+    r = await fetch(BOX.url.replace(/\/+$/, "") + path, { method, headers, body: body === undefined ? undefined : raw ? body : JSON.stringify(body) });
+  } catch (e) {
+    const err = new Error("Keine Verbindung zum Briefkasten – Internet da?"); err.status = 0; throw err;
+  }
+  let data = null;
+  try { data = await r.json(); } catch (e) { /* no JSON */ }
+  if (!r.ok) { const err = new Error((data && data.error) || `Der Briefkasten antwortet nicht (${r.status})`); err.status = r.status; throw err; }
+  return data;
+}
+async function boxHello() {
+  if (!BOX) return;
+  const was = boxOk;
+  try { const r = await boxCall("POST", "/hi"); boxOk = !!r.allowed; boxPc = r.pc; } catch (e) { boxOk = false; }
+  const live = document.getElementById("live");
+  live.classList.toggle("box", boxOk);
+  live.title = boxOk ? "Briefkasten bereit – Fotos gehen direkt und verschlüsselt an deinen PC" : live.title;
+  if (boxOk !== was) { if (sheet && (sheet.kind === "fx" || sheet.kind === "app")) renderSheet(); else if (!sheet) render(); }
+}
+async function seal(key, data, aad) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: new TextEncoder().encode(aad) }, key, data));
+  const out = new Uint8Array(12 + ct.length);
+  out.set(iv); out.set(ct, 12);
+  return out;
+}
+function tripTitle(o) {
+  if (o.k === "fx") return (MENU.effects.find((e) => e.id === o.e) || { title: "Effekt" }).title;
+  if (o.k === "app") return (MENU.apps.find((a) => a.id === o.e) || { title: "App" }).title;
+  return o.k === "img" ? (o.t || "Bild").slice(0, 40) : (o.t || "Video").slice(0, 40);
+}
+async function boxSend(o, files) {
+  const trip = { key: `t${Date.now()}`, id: null, token: null, title: tripTitle(o), k: o.k, s: "seal", x: "", p: 0, t: Date.now(), pc: boxPc,
+    thumbs: files.map((f) => ({ url: URL.createObjectURL(f.file), kind: f.kind })), order: o, files };
+  trips.push(trip);
+  showTrip(trip);
+  try {
+    const pub = await crypto.subtle.importKey("spki", fromB64(BOX.key), { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]);
+    const key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt"]);
+    const wk = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, pub, await crypto.subtle.exportKey("raw", key));
+    let n = 0;
+    const list = files.map((f) => { const count = Math.max(1, Math.ceil(f.file.size / PART)); const e = { slot: f.slot, kind: f.kind, name: f.file.name || f.slot, type: f.file.type || "", size: f.file.size, first: n, count }; n += count; return e; });
+    const total = files.reduce((a, f) => a + f.file.size, 0);
+    const man = await seal(key, new TextEncoder().encode(JSON.stringify({ v: 1, order: o, files: list, init: tg.initData })), "man");
+    const up = await boxCall("POST", "/up", { body: { wk: toB64(wk), man: toB64(man), parts: n, size: total } });
+    Object.assign(trip, { id: up.id, token: up.token, s: "up" });
+    saveTrips(); paintTrip(trip);
+    const jobs = [];
+    list.forEach((e, i) => { for (let j = 0; j < e.count; j++) jobs.push({ file: files[i].file, size: e.size, j, n: e.first + j }); });
+    let sent = 0, next = 0;
+    const one = async (job) => {
+      const blob = job.file.slice(job.j * PART, Math.min(job.size, (job.j + 1) * PART));
+      const body = await seal(key, await blob.arrayBuffer(), `part:${job.n}`);
+      for (let a = 0; ; a++) {
+        try { await boxCall("PUT", `/up/${up.id}/${job.n}`, { body, token: up.token, raw: true }); break; } catch (e) {
+          if (a >= 3 || (e.status >= 400 && e.status < 500 && e.status !== 429)) throw e;
+          await sleep(900 * (a + 1));
+        }
+      }
+      sent += blob.size; trip.p = total ? sent / total : 1; paintTrip(trip);
+    };
+    await Promise.all([0, 1, 2].map(async () => { while (next < jobs.length) await one(jobs[next++]); }));
+    Object.assign(trip, await boxCall("POST", `/up/${up.id}/done`, { token: up.token }), { p: null });
+    try { tg.HapticFeedback.notificationOccurred("success"); } catch (e) { /* none */ }
+    saveTrips(); paintTrip(trip); watchTrips();
+  } catch (e) {
+    Object.assign(trip, { s: "failed", x: e.message || "Hochladen hat nicht geklappt.", local: true, p: null });
+    try { tg.HapticFeedback.notificationOccurred("error"); } catch (er) { /* none */ }
+    saveTrips(); paintTrip(trip);
+  }
+}
+
+/* ---------- the orders on their way (strip on the page, sheet with the stages) ---------- */
+const STAGES = ["Hochladen", "Beim PC", "Warteschlange", "Rechnet", "Fertig"];
+const stageOf = (s) => ({ seal: 0, up: 0, sent: 1, picked: 1, queued: 2, running: 3, paused: 3, done: 4 })[s];
+function tripText(t) {
+  if (t.s === "seal") return "Wird verschlüsselt …";
+  if (t.s === "up") return "Wird hochgeladen …";
+  if (t.s === "sent") return t.pc !== null && t.pc > 90 ? "Liegt im Briefkasten. Dein PC holt den Auftrag ab, sobald CutForge läuft (bis zu 2 Stunden)."
+    : "Liegt im Briefkasten – dein PC holt ihn gleich ab …";
+  return t.x || ({ picked: "Beim PC angekommen", queued: "In der Warteschlange", running: "Rechnet …", paused: "Die Warteschlange ist angehalten",
+    done: "Fertig – das Ergebnis ist im Chat.", failed: "Das hat nicht geklappt." })[t.s] || "";
+}
+function shortText(t) {
+  if (t.s === "up" || (t.s === "running" && typeof t.p === "number")) return `${t.s === "up" ? "Hochladen" : "Rechnet"} · ${Math.round((t.p || 0) * 100)} %`;
+  return ({ seal: "Verschlüsseln …", sent: "Im Briefkasten", picked: "Beim PC", queued: "Warteschlange", running: "Rechnet …", paused: "Angehalten",
+    done: "Fertig · im Chat", failed: "Nicht geklappt" })[t.s] || "";
+}
+const TRIPS_KEY = "cf.trips";
+function loadTrips() {
+  try { trips = JSON.parse(localStorage.getItem(TRIPS_KEY) || "[]").filter((t) => t.id && Date.now() - t.t < 20 * 3600e3); } catch (e) { trips = []; }
+}
+function saveTrips() {
+  try {
+    localStorage.setItem(TRIPS_KEY, JSON.stringify(trips.filter((t) => t.id).slice(-12)
+      .map(({ key, id, token, title, k, s, x, p, t, pc }) => ({ key, id, token, title, k, s, x, p, t, pc }))));
+  } catch (e) { /* private mode */ }
+}
+function tripsHtml() {
+  const shown = trips.filter((t) => !ENDED.includes(t.s) || Date.now() - t.t < 3 * 3600e3).slice(-6).reverse();
+  if (!shown.length) return "";
+  return `<div class="trips">${shown.map((t) => `<button class="trip-chip ${tripClass(t)}" data-trip="${t.key}" style="--p:${t.p || 0}">${chipInner(t)}</button>`).join("")}</div>`;
+}
+const tripClass = (t) => (ENDED.includes(t.s) ? t.s : (t.s === "up" || (t.s === "running" && typeof t.p === "number")) ? "" : "wait");
+function chipInner(t) {
+  const th = (t.thumbs || []).find((x) => x.kind === "image");
+  const kindIcon = { fx: "fx", vid: "video", img: "image", app: "apps" }[t.k] || "fx";
+  return `<span class="tt">${th ? `<img src="${th.url}" alt="">` : icon(t.s === "done" ? "check" : kindIcon, 18)}</span><span class="tw"><b>${esc(t.title)}</b><small>${esc(shortText(t))}</small></span><i class="tb"></i>`;
+}
+function syncTrips() {                    // the strip on the page, without redrawing the forms
+  const v = document.getElementById("view"), old = v.querySelector(".trips"), html = tripsHtml();
+  if (old) old.outerHTML = html; else if (html) v.insertAdjacentHTML("afterbegin", html);
+}
+function showTrip(trip) {
+  sheet = { kind: "trip", trip };
+  const b = document.getElementById("sheetBody");
+  const media = (trip.thumbs || []).map((m) => `<div class="tm">${m.kind === "video" ? `<video src="${m.url}#t=0.1" muted playsinline preload="metadata"></video>` : `<img src="${m.url}" alt="">`}</div>`).join("");
+  b.innerHTML = `<div class="sheet-head"><h1>${esc(trip.title)}</h1><button class="close" data-close>${icon("close", 16)}</button></div>`
+    + (media ? `<div class="trip-media">${media}</div>` : "") + `<div id="tripLive"></div>`;
+  paintTrip(trip, true);
+  stagger(b.querySelectorAll(".sheet-head, #tripLive > *"));
+  const sh = document.getElementById("sheet");
+  sh.scrollTop = 0; sh.classList.add("open");
+  document.body.classList.add("in-sheet");
+  if (inTelegram) { tg.BackButton.show(); try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) { /* older clients */ } }
+  updateSend();
+}
+function paintTrip(trip, first = false) {
+  const chip = document.querySelector(`.trip-chip[data-trip="${trip.key}"]`);
+  if (chip) { chip.className = `trip-chip ${tripClass(trip)}`; chip.style.setProperty("--p", trip.p || 0); chip.innerHTML = chipInner(trip); }
+  else syncTrips();
+  if (!sheet || sheet.kind !== "trip" || sheet.trip !== trip) return;
+  const sh = document.getElementById("sheet"), live = document.getElementById("tripLive");
+  if (!live) return;
+  sh.dataset.s = trip.s;
+  const bad = trip.s === "failed", st = bad ? (trip.stage ?? 0) : stageOf(trip.s);
+  if (!bad) trip.stage = st;
+  const num = trip.s === "up" || (trip.s === "running" && typeof trip.p === "number");
+  const meter = trip.s === "done" ? "done" : bad ? "bad" : num ? "" : "wait";
+  const steps = STAGES.map((label, i) => `<li class="${i < st || trip.s === "done" ? "ok" : i === st ? (bad ? "bad" : "now") : ""}">${label}</li>`).join("");
+  let acts = "";
+  if (trip.s === "done") acts = `<div class="duo"><button class="ghost main" data-act="chat">${icon("chat", 16)} Zum Chat</button><button class="ghost" data-act="more">Noch ein Auftrag</button></div>`;
+  else if (bad && trip.local && trip.files) acts = `<div class="duo"><button class="ghost main" data-act="retry">Nochmal versuchen</button><button class="ghost" data-act="classic">Fotos im Chat schicken</button></div>`;
+  else if (bad) acts = `<div class="duo"><button class="ghost" data-act="more">Schließen</button></div>`;
+  else acts = `<div class="duo"><button class="ghost" data-act="more">Weiter stöbern</button></div>`
+    + `<p class="note">Du kannst die Seite schließen – der Fortschritt steht auch im Chat, das Ergebnis kommt dorthin.</p>`;
+  const was = live.dataset.s;
+  live.innerHTML = (trip.s === "done" ? `<div class="trip-ok">${icon("check", 34)}</div>` : "")
+    + `<ol class="stages">${steps}</ol>`
+    + (num ? `<div class="pct">${Math.round((trip.p || 0) * 100)}<small>%</small></div>` : "")
+    + `<div class="meter ${meter}" style="--p:${trip.p || 0}"><i></i></div><p class="trip-x${bad ? " bad" : ""}">${esc(tripText(trip))}</p>${acts}`;
+  live.dataset.s = trip.s;
+  if (!first && was !== trip.s) { replay(live.querySelector(".stages li.now, .stages li.bad"), "just"); if (trip.s === "done") zap(); }
+}
+function openTrip(key) {
+  const t = trips.find((x) => x.key === key);
+  if (t) { haptic(); showTrip(t); }
+}
+let watching = null;
+function watchTrips() {
+  if (watching || !BOX) return;
+  watching = setInterval(async () => {
+    const open = trips.filter((t) => t.id && t.token && !ENDED.includes(t.s) && t.s !== "seal" && t.s !== "up");
+    if (!open.length) { clearInterval(watching); watching = null; return; }
+    if (document.hidden) return;
+    for (const t of open) {
+      try {
+        const was = t.s;
+        Object.assign(t, await boxCall("GET", `/st/${t.id}`, { token: t.token }));
+        if (t.s !== was && ENDED.includes(t.s)) { try { tg.HapticFeedback.notificationOccurred(t.s === "done" ? "success" : "error"); } catch (e) { /* none */ } }
+      } catch (e) {
+        if (e.status === 404) Object.assign(t, { s: "failed", x: "Nicht mehr im Briefkasten." });
+      }
+      paintTrip(t);
+    }
+    saveTrips();
+  }, 2500);
+}
+
 /* ---------- state ---------- */
 let tab = "fx", query = "", sheet = null;
 const videoForm = { src: "text", t: "", m: ["ltx25"], c: "none", a: "auto", s: 5, q: "gut", r: "720p", o: "", n: 1 };
 const imageForm = { src: "text", t: "", m: ["qwen21"], a: "1:1", r: "1k", n: 1 };
 const available = (list) => list.filter((m) => m.available);
 const vModels = available(MENU.models);
+/* The bot opens the page with the user's limits (?l=base64 JSON: t tier title, r video size "min"/"all"/"1080p",
+   o upscale ""/"all"/size, mm MiniMax, ir image size, s seconds, n variants, f faces). No parameter = admin = all. */
+const LIM = (() => {
+  try {
+    const q = new URLSearchParams(location.search).get("l");
+    if (!q) return null;
+    const b = q.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(b + "===".slice((b.length + 3) % 4)));
+  } catch (e) { return null; }
+})();
+const LOCK = "Plus";
+const UPSCALE_APPS = ["upscale", "upscale_fast"];
 const resKey = (m) => (m.startsWith("minimax") ? "minimax" : m);
 const short = (r) => parseInt(r, 10) || 0;
 function nativeFor(model, wanted) {
@@ -385,9 +761,34 @@ function minutes(models, secs, render, out) {
   return Math.max(1, Math.round(m));
 }
 
+/* ---------- what the tier allows ---------- */
+function maxRender(models) {                       // largest allowed render short side
+  if (!LIM || LIM.r === "all") return Infinity;
+  if (LIM.r === "min") return Math.min(...models.map((m) => { const n = (MENU.video[resKey(m)] || { render: [] }).render[0]; return n ? short(n.id) : Infinity; }));
+  return short(LIM.r) || Infinity;
+}
+const maxOutput = () => (!LIM || LIM.o === "all" ? Infinity : LIM.o ? short(LIM.o) : 0);
+const modelLocked = (id) => !!(LIM && !LIM.mm && id === "minimax");
+const secsLocked = (s) => !!(LIM && LIM.s && s > LIM.s);
+const maxVariants = () => (LIM && LIM.n ? LIM.n : 4);
+const appLocked = (a) => !!(LIM && ((a.reference && !LIM.f) || (UPSCALE_APPS.includes(a.id) && !LIM.o)));
+function fitVideo(f) {                             // keeps a form inside the limits (the bot checks again anyway)
+  if (!LIM) return;
+  f.m = f.m.filter((m) => !modelLocked(m));
+  if (!f.m.length) f.m = ["ltx25"];
+  const mx = maxRender(f.m);
+  if (short(f.r) > mx) {
+    const natives = [...new Set(f.m.flatMap((m) => (MENU.video[resKey(m)] || { render: [] }).render.map((r) => r.id)))].sort((a, b) => short(a) - short(b));
+    f.r = natives.filter((r) => short(r) <= mx).pop() || natives[0] || f.r;
+  }
+  if (short(f.o) > maxOutput()) f.o = "";
+  if (LIM.s && f.s > LIM.s) f.s = LIM.s;
+  if (f.n > maxVariants()) f.n = maxVariants();
+}
+
 /* ---------- small controls ---------- */
-const seg = (name, options, value, attrs = "") => `<div class="seg" data-seg="${name}" ${attrs}>${options.map(([v, label, dis, extra]) =>
-  `<button data-v="${esc(v)}" class="${String(v) === String(value) ? "on" : ""}" ${dis ? "disabled" : ""}>${esc(label)}${extra ? `<small>${esc(extra)}</small>` : ""}</button>`).join("")}</div>`;
+const seg = (name, options, value, attrs = "") => `<div class="seg" data-seg="${name}" ${attrs}>${options.map(([v, label, dis, extra, lock]) =>
+  `<button data-v="${esc(v)}" class="${String(v) === String(value) ? "on" : ""}${lock ? " lock" : ""}" ${dis || lock ? "disabled" : ""}>${esc(label)}${lock ? `<small>${LOCK}</small>` : extra ? `<small>${esc(extra)}</small>` : ""}</button>`).join("")}</div>`;
 const field = (label, body, aside = "", note = "") => `<div class="field"><div class="label">${label}${aside ? `<span class="aside">${aside}</span>` : ""}</div>${body}${note ? `<p class="note">${note}</p>` : ""}</div>`;
 const aspectOptions = (auto) => [...(auto ? [["auto", "Wie das Foto"]] : []), ...MENU.aspects.map((a) => [a.id, a.label])];
 const select = (name, options, value) => `<select data-sel="${name}">${options.map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
@@ -399,8 +800,10 @@ function renderControls(models, f) {
   const render = models.length === 1 ? nativeFor(first, f.r) : f.r;
   const notes = models.map((m) => { const n = nativeFor(m, f.r); return `${esc(title(m))}: ${n}${n === f.r ? " nativ" : " (höchste native Größe)"}`; }).join(" · ");
   const outs = [["", `Wie erzeugt · ${render}`], ...MENU.upscale.filter((u) => short(u.id) > short(render)).map((u) => [u.id, `${u.id} umgewandelt`])];
-  return field("Erzeugen in", seg("r", natives.map((r) => [r, r, false, "nativ"]), f.r), "", notes)
-    + field("Ausgabe", seg("o", outs.map(([v, l]) => [v, l]), short(f.o) > short(render) ? f.o : ""), "", "Größer als erzeugt = KI-Schärfen mit SeedVR2 (dauert). Gleich groß = keine Wartezeit.");
+  const mx = maxRender(models), mo = maxOutput();
+  return field("Erzeugen in", seg("r", natives.map((r) => [r, r, false, "nativ", short(r) > mx]), f.r), "", notes)
+    + field("Ausgabe", seg("o", outs.map(([v, l]) => [v, l, false, "", !!v && short(v) > mo]), short(f.o) > short(render) ? f.o : ""), "",
+      "Größer als erzeugt = KI-Schärfen mit SeedVR2 (dauert). Gleich groß = keine Wartezeit.");
 }
 const title = (id) => (MENU.models.find((m) => m.id === id) || MENU.imageModels.find((m) => m.id === id) || { title: id }).title;
 
@@ -446,13 +849,14 @@ function render() {
     v.innerHTML = html || `<p class="empty">Nichts gefunden.</p>`;
   } else if (tab === "app") {
     const list = MENU.apps.filter(matches);
-    v.innerHTML = list.map((a) => `<button class="row" data-open="app:${a.id}"><span class="ic">${icon(a.input === "video" ? "video" : a.input === "image" ? "image" : "apps", 20)}</span><span class="grow"><span class="t">${esc(a.title)}</span><br><span class="d">${esc(a.desc)}</span></span><span class="chev">${icon("chev", 18)}</span></button>`).join("")
+    v.innerHTML = list.map((a) => `<button class="row${appLocked(a) ? " locked" : ""}" data-open="app:${a.id}"><span class="ic">${icon(a.input === "video" ? "video" : a.input === "image" ? "image" : "apps", 20)}</span><span class="grow"><span class="t">${esc(a.title)}</span><br><span class="d">${esc(a.desc)}</span></span>${appLocked(a) ? `<span class="lockmark">${LOCK}</span>` : `<span class="chev">${icon("chev", 18)}</span>`}</button>`).join("")
       || `<p class="empty">Nichts gefunden.</p>`;
   } else if (tab === "vid") {
     v.innerHTML = videoFormHtml();
   } else {
     v.innerHTML = imageFormHtml();
   }
+  if (trips.length) v.insertAdjacentHTML("afterbegin", tripsHtml());
   if (mode && !reduced) {
     if (mode === "left" || mode === "right") replay(v, `go-${mode}`);
     reveal(v.querySelectorAll(".tile, .row, h2, .field, .ptitle, .lead, .summary, .empty"));
@@ -462,16 +866,18 @@ function render() {
 
 function videoFormHtml() {
   const f = videoForm;
+  fitVideo(f);
   const models = f.m.filter((m) => vModels.some((x) => x.id === m));
   const src = field("Ausgangspunkt", seg("vid.src", [["text", "Text"], ["photo", "Foto"], ["photos", "Start + Ende"]], f.src),
-    "", f.src === "text" ? "" : f.src === "photo" ? "Danach schickst du dem Bot ein Foto." : "Danach schickst du Start- und Endbild.");
+    "", boxOk || f.src === "text" ? "" : f.src === "photo" ? "Danach schickst du dem Bot ein Foto." : "Danach schickst du Start- und Endbild.")
+    + (boxOk ? pickHtml(needsOf({ k: "vid", src: f.src })) : "");
   const minimaxOnly = models.length === 1 && models[0] === "minimax";
   return `<h1 class="ptitle">Video</h1><p class="lead">Aus Text oder Bild, mit Ton und Kamerafahrt.</p>`
     + src + field("Beschreibung", `<textarea data-in="vid.t" placeholder="Was passiert? Englisch wirkt am besten, z. B. „a red fox runs through deep snow at sunrise“">${esc(f.t)}</textarea>`)
-    + field("Modell", seg("vid.m", vModels.map((m) => [m.id, m.title]), "", 'data-multi="1"').replace(/data-v="([^"]+)" class=""/g, (s, id) => (models.includes(id) ? `data-v="${id}" class="on"` : s)), "", "Mehrere wählen = je Modell eigene Clips zum Vergleichen.")
+    + field("Modell", seg("vid.m", vModels.map((m) => [m.id, m.title, false, "", modelLocked(m.id)]), "", 'data-multi="1"').replace(/data-v="([^"]+)" class=""/g, (s, id) => (models.includes(id) ? `data-v="${id}" class="on"` : s)), "", "Mehrere wählen = je Modell eigene Clips zum Vergleichen.")
     + field("Kamera", select("vid.c", [["none", "Frei"], ...MENU.motions.map((m) => [m.id, m.title])], f.c))
     + (minimaxOnly ? "" : field("Format", select("vid.a", aspectOptions(f.src !== "text"), f.src === "text" && f.a === "auto" ? "16:9" : f.a)))
-    + field("Länge", seg("vid.s", [3, 5, 8, 10].map((s) => [s, `${s} s`, models.includes("minimax") && s < 5]), f.s))
+    + field("Länge", seg("vid.s", [3, 5, 8, 10].map((s) => [s, `${s} s`, models.includes("minimax") && s < 5, "", secsLocked(s)]), f.s))
     + field("Qualität", seg("vid.q", [["schnell", "Schnell"], ["gut", "Gut"], ["maximal", "Maximal"]], f.q))
     + renderControls(models, { r: f.r, o: f.o }).replace(/data-seg="r"/, 'data-seg="vid.r"').replace(/data-seg="o"/, 'data-seg="vid.o"')
     + field("Varianten", stepper("vid.n", f.n))
@@ -480,16 +886,19 @@ function videoFormHtml() {
 
 function imageFormHtml() {
   const f = imageForm;
+  if (LIM && LIM.ir === "1k") f.r = "1k";
+  if (f.n > maxVariants()) f.n = maxVariants();
   const t2i = f.src === "text";
   const models = t2i ? f.m : ["qwen21"];
   const sizes = (MENU.image[models[0]] || { render: [] }).render;
   return `<h1 class="ptitle">Bild</h1><p class="lead">Neu erzeugen oder ein Foto verändern.</p>`
     + field("Ausgangspunkt", seg("img.src", [["text", "Text"], ["edit1", "Foto ändern"], ["edit2", "Zwei Fotos"]], f.src), "",
-      t2i ? "" : f.src === "edit1" ? "Danach schickst du dem Bot das Foto." : "Danach schickst du zwei Fotos.")
+      boxOk || t2i ? "" : f.src === "edit1" ? "Danach schickst du dem Bot das Foto." : "Danach schickst du zwei Fotos.")
+    + (boxOk ? pickHtml(needsOf({ k: "img", src: f.src })) : "")
     + field("Beschreibung", `<textarea data-in="img.t" placeholder="${t2i ? "Was soll zu sehen sein? Deutsch oder Englisch" : "Was soll sich ändern? z. B. „mach daraus einen Winterabend“"}">${esc(f.t)}</textarea>`)
     + (t2i ? field("Modell", seg("img.m", available(MENU.imageModels).map((m) => [m.id, m.title]), "", 'data-multi="1"').replace(/data-v="([^"]+)" class=""/g, (s, id) => (f.m.includes(id) ? `data-v="${id}" class="on"` : s)))
       + field("Format", select("img.a", aspectOptions(false), f.a))
-      + field("Größe", seg("img.r", sizes.map((r) => [r.id, r.id.toUpperCase(), false, "nativ"]), f.r), "",
+      + field("Größe", seg("img.r", sizes.map((r) => [r.id, r.id.toUpperCase(), false, "nativ", !!(LIM && LIM.ir === "1k" && r.id === "2k")]), f.r), "",
         esc((sizes.find((r) => r.id === f.r) || {}).sizes ? `${sizes.find((r) => r.id === f.r).sizes[f.a]} px · ${(sizes.find((r) => r.id === f.r) || {}).note}` : "")) : "")
     + field("Varianten", stepper("img.n", f.n))
     + `<div class="summary" id="sum"></div>`;
@@ -501,7 +910,7 @@ function openSheet(kind, id) {
   haptic();
   if (kind === "fx") {
     const e = MENU.effects.find((x) => x.id === id);
-    const rec = vModels.some((m) => m.id === e.empfohlen) ? e.empfohlen : "ltx25";
+    const rec = vModels.some((m) => m.id === e.empfohlen) && !modelLocked(e.empfohlen) ? e.empfohlen : "ltx25";
     sheet = { kind, item: e };
     Object.assign(sheetForm, { t: "", m: [rec], a: "auto", r: "720p", o: "", s: e.seconds, i: "normal", c: "none", n: 1, mu: false, le: false, p: e.prompt });
   } else {
@@ -513,7 +922,7 @@ function openSheet(kind, id) {
   const sh = document.getElementById("sheet");
   sh.scrollTop = 0;
   renderSheet();
-  stagger(document.getElementById("sheetBody").querySelectorAll(".sheet-head, .lead, .needs, .field, details, .summary"));
+  stagger(document.getElementById("sheetBody").querySelectorAll(".sheet-head, .lead, .needs, .picks, .safe, .field, details, .summary"));
   sh.classList.add("open");
   document.body.classList.add("in-sheet");
   if (inTelegram) { tg.BackButton.show(); try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) { /* older clients */ } }
@@ -524,25 +933,28 @@ function closeSheet() {
   document.body.classList.remove("in-sheet");
   if (inTelegram) { tg.BackButton.hide(); try { tg.enableVerticalSwipes && tg.enableVerticalSwipes(); } catch (e) { /* older clients */ } }
   lastSum = null;
+  if (trips.length) syncTrips();
   updateSend();
 }
 function renderSheet() {
   const b = document.getElementById("sheetBody");
   if (!sheet) return;
+  if (sheet.kind === "trip") { paintTrip(sheet.trip); return; }
   const f = sheetForm;
   if (sheet.kind === "fx") {
     const e = sheet.item;
+    fitVideo(f);
     const models = f.m;
     const hasMinimax = models.includes("minimax");
     const ltxOnly = models.every((m) => m === "ltx25");
     const motion = MENU.motions.find((m) => m.id === e.motion);
     b.innerHTML = `<div class="sheet-head"><h1>${esc(e.title)}</h1><button class="fav ${favs.includes(e.id) ? "on" : ""}" data-fav="${e.id}" title="Favorit">${icon("star", 22, favs.includes(e.id) ? "currentColor" : "none")}</button><button class="close" data-close>${icon("close", 16)}</button></div>`
-      + `<p class="lead">${esc(e.desc)}</p><span class="needs">${icon("image", 16)} Danach schickst du: ${f.le && ltxOnly ? "Foto + Endbild" : "1 Foto"}</span>`
+      + `<p class="lead">${esc(e.desc)}</p>` + needsBlock(needsOf({ k: "fx", le: f.le && ltxOnly }), f.le && ltxOnly ? "Foto + Endbild" : "1 Foto")
       + field("Wer oder was ist zu sehen?", `<input class="input" data-in="fx.t" value="${esc(f.t)}" placeholder="optional, englisch – z. B. „a woman in a red dress“">`)
-      + field("Modell", seg("fx.m", vModels.map((m) => [m.id, m.title + (m.id === e.empfohlen ? " ★" : "")]), "", 'data-multi="1"').replace(/data-v="([^"]+)" class=""/g, (s, id) => (models.includes(id) ? `data-v="${id}" class="on"` : s)),
+      + field("Modell", seg("fx.m", vModels.map((m) => [m.id, m.title + (m.id === e.empfohlen ? " ★" : ""), false, "", modelLocked(m.id)]), "", 'data-multi="1"').replace(/data-v="([^"]+)" class=""/g, (s, id) => (models.includes(id) ? `data-v="${id}" class="on"` : s)),
         "", `★ empfohlen: ${esc(e.empfohlen_grund || "")}`)
       + field("Intensität", seg("fx.i", [["sanft", "Sanft"], ["normal", "Normal"], ["extrem", "Extrem"]], f.i))
-      + field("Länge", seg("fx.s", [3, 4, 5, 6, 8, 10].map((s) => [s, `${s} s`, hasMinimax && s < 5]), hasMinimax ? Math.max(5, f.s) : f.s))
+      + field("Länge", seg("fx.s", [3, 4, 5, 6, 8, 10].map((s) => [s, `${s} s`, hasMinimax && s < 5, "", secsLocked(s)]), hasMinimax ? Math.max(5, f.s) : f.s))
       + `<details${advOpen ? " open" : ""}><summary>Feinheiten – Format, Auflösung, Kamera, Ton, Endbild, Effekt-Text</summary>`
       + (models.length === 1 && models[0] === "minimax" ? "" : field("Format", select("fx.a", aspectOptions(true), f.a)))
       + renderControls(models, { r: f.r, o: f.o }).replace(/data-seg="r"/, 'data-seg="fx.r"').replace(/data-seg="o"/, 'data-seg="fx.o"')
@@ -557,8 +969,15 @@ function renderSheet() {
     const needs = a.input === "video" ? (a.reference ? "das Video + ein Foto der Figur" : "das Video") : (a.reference ? "ein Foto der Figur" : "nichts weiter");
     const label = a.audio === "tts" ? "Sprechertext (deutsch)" : a.audio === "music" ? "Musikstil, z. B. „ruhiges Klavier, warm“" : a.maskText ? "Was soll weg? (englisch, z. B. „lamp post“)"
       : a.openjutsu === "object" ? "Was soll sich ändern? (englisch, z. B. „hair“)" : a.openjutsu === "simple" ? "Rolle der Figur (optional)" : a.generate ? "Wie geht es weiter? (englisch)" : "Beschreibung (optional, englisch)";
+    if (appLocked(a)) {
+      b.innerHTML = `<div class="sheet-head"><h1>${esc(a.title)}</h1><button class="close" data-close>${icon("close", 16)}</button></div>`
+        + `<p class="lead">${esc(a.desc)}</p><div class="locknote">In deiner Stufe (${esc(LIM.t || "Gast")}) gesperrt`
+        + `${a.reference ? " – Figuren mit fremden Fotos tauschen oder animieren" : " – Hochskalieren"}. Frag den Admin nach ${LOCK}.</div>`;
+      updateSend();
+      return;
+    }
     b.innerHTML = `<div class="sheet-head"><h1>${esc(a.title)}</h1><button class="close" data-close>${icon("close", 16)}</button></div>`
-      + `<p class="lead">${esc(a.desc)}</p><span class="needs">${icon(a.input === "video" ? "video" : "image", 16)} Danach schickst du: ${needs}</span>`
+      + `<p class="lead">${esc(a.desc)}</p>` + needsBlock(needsOf({ k: "app", e: a.id }), needs === "nichts weiter" ? "" : needs)
       + (a.id === "oj_mask" ? "" : field(a.audio === "tts" ? "Text" : a.audio === "music" ? "Stil" : "Anweisung",
         `<textarea data-in="app.t" placeholder="${esc(label)}">${esc(f.t)}</textarea>`))
       + (a.audio ? "" : field("Qualität", seg("app.q", [["schnell", "Schnell"], ["gut", "Gut"], ["maximal", "Maximal"]], f.q)))
@@ -570,6 +989,7 @@ function renderSheet() {
 /* ---------- the order ---------- */
 function currentOrder() {
   const v = MENU.version;
+  if (sheet && sheet.kind !== "fx" && sheet.kind !== "app") return null;
   if (sheet && sheet.kind === "fx") {
     const f = sheetForm, e = sheet.item;
     const hasMinimax = f.m.includes("minimax");
@@ -579,7 +999,7 @@ function currentOrder() {
     if (f.p.trim() !== e.prompt) o.p = f.p;
     return o;
   }
-  if (sheet && sheet.kind === "app") return { v, k: "app", e: sheet.item.id, q: sheetForm.q, t: sheetForm.t.trim() };
+  if (sheet && sheet.kind === "app") return appLocked(sheet.item) ? null : { v, k: "app", e: sheet.item.id, q: sheetForm.q, t: sheetForm.t.trim() };
   if (tab === "vid") {
     const f = videoForm;
     return { v, k: "vid", src: f.src, t: f.t.trim(), m: f.m, c: f.c, a: f.src === "text" && f.a === "auto" ? "16:9" : f.a, s: f.s, q: f.q, r: f.r, o: f.o, n: f.n };
@@ -592,6 +1012,11 @@ function orderProblem(o) {
   if ((o.k === "fx" || o.k === "vid" || o.k === "img") && (!o.m || (!o.m.length && o.k !== "img"))) return "Bitte ein Modell wählen";
   if (o.k === "vid" && o.src === "text" && !o.t) return "Bitte beschreiben, was passieren soll";
   if (o.k === "img" && !o.t) return "Bitte beschreiben, was zu sehen sein soll";
+  if (boxOk) {
+    const miss = needsOf(o).find((n) => !picks[n.slot]);
+    if (miss) return `Bitte ${miss.the} wählen`;
+    if (needsOf(o).reduce((a, n) => a + picks[n.slot].file.size, 0) > MAX_UPLOAD) return "Zusammen zu groß – höchstens 190 MB";
+  }
   return "";
 }
 function summaryText(o) {
@@ -631,6 +1056,10 @@ function send() {
   const o = currentOrder();
   if (!o || orderProblem(o)) return;
   haptic("medium");
+  if (boxOk) { boxSend(o, needsOf(o).map((n) => ({ slot: n.slot, kind: n.kind, file: picks[n.slot].file }))); return; }
+  sendClassic(o);
+}
+function sendClassic(o) {                  // the bot asks for the photos in the chat
   if (inTelegram) {
     try { tg.sendData(JSON.stringify(o)); return; } catch (e) { /* not opened from the bot's keyboard: show the code */ }
   }
@@ -681,6 +1110,17 @@ document.addEventListener("click", (ev) => {
     tab = t.dataset.tab; tick(); window.scrollTo(0, 0); intro = to > from ? "right" : "left"; render(); zap(); return;
   }
   if (t.dataset.open) { const [k, id] = t.dataset.open.split(":"); openSheet(k, id); return; }
+  if (t.dataset.unpick) { unpick(t.dataset.unpick); return; }
+  if (t.dataset.trip) { openTrip(t.dataset.trip); return; }
+  if (t.dataset.act) {
+    const trip = sheet && sheet.trip, act = t.dataset.act;
+    haptic();
+    if (act === "chat") { try { tg.close(); } catch (e) { closeSheet(); } }
+    else if (act === "more") closeSheet();
+    else if (act === "retry" && trip) { trips = trips.filter((x) => x !== trip); boxSend(trip.order, trip.files); }
+    else if (act === "classic" && trip) { trips = trips.filter((x) => x !== trip); saveTrips(); closeSheet(); sendClassic(trip.order); }
+    return;
+  }
   if (t.hasAttribute("data-close")) { closeSheet(); return; }
   if (t.dataset.fav) { toggleFav(t.dataset.fav); renderSheet(); pop(`.sheet [data-fav="${t.dataset.fav}"]`); return; }
   if (t.id === "send") { send(); return; }
@@ -695,7 +1135,7 @@ document.addEventListener("click", (ev) => {
   const st = t.closest("[data-step]");
   if (st) {
     const [form, k, scope] = formOf(st.dataset.step), d = Number(t.dataset.d), before = form[k];
-    form[k] = Math.max(1, Math.min(4, form[k] + d));
+    form[k] = Math.max(1, Math.min(maxVariants(), form[k] + d));
     if (form[k] === before) { haptic("rigid"); return; }
     tick(); rerender(scope); pop(`[data-step="${st.dataset.step}"] span`, d > 0 ? "up" : "down");
   }
@@ -709,11 +1149,12 @@ document.addEventListener("change", (ev) => {
   const el = ev.target;
   if (el.dataset.sel) { const [form, k, scope] = formOf(el.dataset.sel); form[k] = el.value; tick(); rerender(scope); pop(`[data-sel="${el.dataset.sel}"]`); }
   if (el.dataset.tog) { const [form, k, scope] = formOf(el.dataset.tog); form[k] = el.checked; haptic(); rerender(scope); pop(`[data-tog="${el.dataset.tog}"]`); }
+  if (el.dataset.file) onPick(el);
 });
 document.getElementById("send").onclick = send;
 
 /* touch light: a soft red-turquoise glow under the finger */
-const LIT = ".tile, .row, .seg button, .primary, .ghost";
+const LIT = ".tile, .row, .seg button, .primary, .ghost, .trip-chip";
 document.addEventListener("pointerdown", (ev) => {
   const el = ev.target.closest(LIT);
   if (!el || el.disabled) return;
@@ -775,7 +1216,14 @@ if (inTelegram) {
   tg.BackButton.onClick(closeSheet);
 }
 document.getElementById("live").classList.toggle("off", !inTelegram);
+if (LIM) {
+  const chip = document.getElementById("tier");
+  chip.textContent = LIM.t || "Gast";
+  chip.title = `Deine Stufe – mit „${LOCK}“ markierte Optionen schaltet der Admin frei`;
+  chip.classList.remove("hidden");
+}
 document.getElementById("live").title = inTelegram ? "In Telegram geöffnet" : "Im Browser – der Auftrag wird ein Code zum Kopieren";
+if (BOX) { loadTrips(); watchTrips(); boxHello(); }
 loadFavs(() => { intro = "first"; render(); });
 </script>
 </body>
