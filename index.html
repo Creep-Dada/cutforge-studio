@@ -1396,16 +1396,17 @@ function updateSend() {
   }
   const problem = orderProblem(o);
   const btn = document.getElementById("send");
+  const quiet = !!(problem && !sheet && (tab === "vid" || tab === "img"));   // Video/Bild: the button appears once the form is complete
   if (inTelegram) {
     btn.classList.add("hidden");
-    if (o) {
+    if (o && !quiet) {
       const css = getComputedStyle(document.documentElement);
       tg.MainButton.setParams({ text: problem || "Auftrag senden", is_active: !problem, is_visible: true, has_shine_effect: !problem,
         color: problem ? css.getPropertyValue("--hint").trim() || undefined : css.getPropertyValue("--red").trim() || undefined, text_color: "#ffffff" });
     } else tg.MainButton.hide();
   } else {
-    btn.classList.toggle("hidden", !o);
-    document.body.classList.toggle("has-send", !!o);
+    btn.classList.toggle("hidden", !o || quiet);
+    document.body.classList.toggle("has-send", !!o && !quiet);
     btn.textContent = problem || "Auftrag als Code";
     btn.disabled = !!problem;
   }
