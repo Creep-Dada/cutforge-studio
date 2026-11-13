@@ -629,7 +629,11 @@ function needsOf(o) {                      // same as orders.needs
     return [img("first", "Foto", "das Foto"), ...(o.le && !kind ? [img("last", "Endbild", "das Endbild")] : [])];
   }
   if (o.k === "vid") return o.src === "photo" ? [img("first", "Startbild", "das Startbild")] : o.src === "photos" ? [img("first", "Startbild", "das Startbild"), img("last", "Endbild", "das Endbild")] : [];
-  if (o.k === "img") return o.src === "edit1" ? [img("img1", "Foto", "das Foto")] : o.src === "edit2" ? [img("img1", "Foto 1", "Foto 1"), img("img2", "Foto 2", "Foto 2")] : [];
+  if (o.k === "img") {
+    if (o.src === "edit1") return [img("img1", "Foto", "das Foto")];
+    if (o.src === "edit2") return Array.from({ length: Math.max(2, Math.min(MAX_PHOTOS, o.ni || 2)) }, (_, i) => img(`img${i + 1}`, `Foto ${i + 1}`, `Foto ${i + 1}`));
+    return [];
+  }
   if (o.k === "wf") {
     const w = WF.find((x) => x.id === o.e);
     return w ? w.i.filter((i) => FILE_T.includes(i.t) && (!i.o || (o.fs || []).includes(i.id))).map((i) => ({ slot: i.id, kind: i.t, label: i.l, the: `„${i.l}“` })) : [];
@@ -683,6 +687,10 @@ function unpick(slot) {
   if (!picks[slot]) return;
   URL.revokeObjectURL(picks[slot].url);
   delete picks[slot];
+  const m = /^img(\d+)$/.exec(slot);
+  if (m) for (let i = Number(m[1]); i < MAX_PHOTOS; i++) {     // Foto 3 of 4 removed: 4 becomes 3
+    if (picks[`img${i + 1}`]) { picks[`img${i}`] = picks[`img${i + 1}`]; delete picks[`img${i + 1}`]; } else break;
+  }
   tick();
   if (sheet) renderSheet(); else render();
 }
@@ -985,7 +993,9 @@ async function libAct(act, btn) {
 /* ---------- state ---------- */
 let tab = "fx", query = "", sheet = null;
 const videoForm = { src: "text", t: "", m: ["ltx25"], c: "none", a: "auto", s: 5, q: "gut", r: "720p", o: "", n: 1 };
-const imageForm = { src: "text", t: "", m: ["qwen21"], a: "1:1", r: "1k", n: 1 };
+const imageForm = { src: "text", t: "", m: ["qwen21"], a: "1:1", r: "1k", n: 1, ni: 2 };
+const MAX_PHOTOS = 10;
+const photosPicked = () => { let k = 0; while (k < MAX_PHOTOS && picks[`img${k + 1}`]) k++; return k; };   // img1..imgK filled
 const available = (list) => list.filter((m) => m.available);
 const vModels = available(MENU.models);
 /* The bot opens the page with the user's limits (?l=base64 JSON: t tier title, r video size "min"/"all"/"1080p",
@@ -1181,9 +1191,12 @@ function imageFormHtml() {
   const models = t2i ? f.m : ["qwen21"];
   const sizes = (MENU.image[models[0]] || { render: [] }).render;
   return `<h1 class="ptitle">Bild</h1><p class="lead">Bilder erstellen oder Fotos bearbeiten.</p>`
-    + field("Quelle", seg("img.src", [["text", "Text"], ["edit1", "Foto bearbeiten"], ["edit2", "Zwei Fotos kombinieren"]], f.src), "",
-      boxOk || t2i ? "" : f.src === "edit1" ? "Das Foto sendest du danach im Chat." : "Die zwei Fotos sendest du danach im Chat.")
-    + (boxOk ? pickHtml(needsOf({ k: "img", src: f.src })) : "")
+    + field("Quelle", seg("img.src", [["text", "Text"], ["edit1", "Foto bearbeiten"], ["edit2", "Fotos kombinieren"]], f.src), "",
+      boxOk || t2i ? "" : f.src === "edit1" ? "Das Foto sendest du danach im Chat." : "Die Fotos sendest du danach im Chat.")
+    + (boxOk && f.src === "edit2" ? pickHtml(needsOf({ k: "img", src: "edit2", ni: Math.min(MAX_PHOTOS, photosPicked() + 1) }))
+      + `<p class="note">${photosPicked() >= 2 ? `${photosPicked()} von höchstens ${MAX_PHOTOS} Fotos.` : "Mindestens 2, höchstens 10 Fotos."} Nenne in der Beschreibung, welches Foto wofür steht, z. B. „die Person aus Foto 1 trägt die Jacke aus Foto 2“.</p>`
+      : boxOk ? pickHtml(needsOf({ k: "img", src: f.src })) : "")
+    + (!boxOk && f.src === "edit2" ? field("Anzahl Fotos", stepper("img.ni", f.ni)) : "")
     + field("Beschreibung", `<textarea data-in="img.t" placeholder="${t2i ? "Beschreibe das Bild – auf Deutsch oder Englisch" : "Beschreibe die Änderung, z. B. „Winterabend mit Schnee“"}">${esc(f.t)}</textarea>`)
     + (t2i ? field("Modell", seg("img.m", available(MENU.imageModels).map((m) => [m.id, m.title]), "", 'data-multi="1"').replace(/data-v="([^"]+)" class=""/g, (s, id) => (f.m.includes(id) ? `data-v="${id}" class="on"` : s)))
       + field("Format", select("img.a", aspectOptions(false), f.a))
@@ -1380,7 +1393,11 @@ function currentOrder() {
     const f = videoForm;
     return { v, k: "vid", src: f.src, t: f.t.trim(), m: f.m, c: f.c, a: f.src === "text" && f.a === "auto" ? "16:9" : f.a, s: f.s, q: f.q, r: f.r, o: f.o, n: f.n };
   }
-  if (tab === "img") { const f = imageForm; return { v, k: "img", src: f.src, t: f.t.trim(), m: f.src === "text" ? f.m : [], a: f.a, r: f.r, n: f.n }; }
+  if (tab === "img") {
+    const f = imageForm, o = { v, k: "img", src: f.src, t: f.t.trim(), m: f.src === "text" ? f.m : [], a: f.a, r: f.r, n: f.n };
+    if (f.src === "edit2") o.ni = boxOk ? Math.max(2, photosPicked()) : f.ni;
+    return o;
+  }
   return null;
 }
 function orderProblem(o) {
@@ -1521,7 +1538,7 @@ document.addEventListener("click", (ev) => {
   const st = t.closest("[data-step]");
   if (st) {
     const [form, k, scope] = formOf(st.dataset.step), d = Number(t.dataset.d), before = form[k];
-    form[k] = Math.max(1, Math.min(maxVariants(), form[k] + d));
+    form[k] = k === "ni" ? Math.max(2, Math.min(MAX_PHOTOS, form[k] + d)) : Math.max(1, Math.min(maxVariants(), form[k] + d));
     if (form[k] === before) { haptic("rigid"); return; }
     tick(); rerender(scope); pop(`[data-step="${st.dataset.step}"] span`, d > 0 ? "up" : "down");
   }
