@@ -40,7 +40,7 @@ button { cursor: pointer; }
 @keyframes drift1 { to { transform: translate(26vw, 10vh) scale(1.18); } }
 @keyframes drift2 { to { transform: translate(-24vw, 6vh) scale(.88); } }
 .wrap { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 20px 16px 8px; }
-#main { transform-origin: 50% 0; transition: transform .55s var(--spring), opacity .45s var(--ease); }
+#main { transform-origin: 50% 0; transition: transform .55s var(--spring), opacity .45s var(--ease); will-change: transform, opacity; }
 body.in-sheet #main { transform: scale(.94); opacity: .4; }
 
 /* ---------- header: the wordmark in RGB split, a short glitch now and then ---------- */
@@ -143,6 +143,10 @@ nav button:active svg { transform: scale(.82); }
   transition: transform .6s var(--spring); padding-bottom: calc(100px + env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0;
   box-shadow: 0 -1px 0 var(--line), 0 -20px 60px rgba(0,0,0,.35); overscroll-behavior: contain; }
 .sheet.open { transform: translateY(0); }
+.sheet { will-change: transform; contain: layout paint; }
+/* while a sheet slides, the frosted bar and the drifting background stop working - the GPU only moves layers */
+body.moving nav, body.in-sheet nav { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--bg2); }
+body.in-sheet .aurora i, body.moving .aurora i { animation-play-state: paused; }
 .sheet.dragging { transition: none; }
 .grip { width: 42px; height: 5px; border-radius: 3px; background: var(--bg3); margin: 0 auto; padding: 0; position: relative; touch-action: none; }
 .grip::before { content: ""; position: absolute; inset: -10px -60px; }
@@ -391,7 +395,7 @@ body.has-send:not(.in-sheet) { padding-bottom: calc(154px + env(safe-area-inset-
 @keyframes from-right { from { opacity: 0; transform: translateX(28px); } }
 @keyframes from-left { from { opacity: 0; transform: translateX(-28px); } }
 .pre { opacity: 0; }
-.enter { animation: rise .65s var(--spring) backwards; animation-delay: calc(var(--i, 0) * 40ms + var(--base, 0ms)); }
+.enter { animation: rise .5s var(--spring) backwards; animation-delay: calc(var(--i, 0) * 40ms + var(--base, 0ms)); }
 .sheet .enter { --base: 90ms; }
 #view.go-right { animation: from-right .5s var(--spring) backwards; }
 #view.go-left { animation: from-left .5s var(--spring) backwards; }
@@ -494,7 +498,7 @@ const io = !reduced && "IntersectionObserver" in window ? new IntersectionObserv
   }
 }, { rootMargin: "0px 0px -4% 0px" }) : null;
 function reveal(nodes) { if (!io) return; for (const n of nodes) { n.classList.add("pre"); io.observe(n); } }
-function stagger(nodes) { if (reduced) return; [...nodes].forEach((n, i) => { n.style.setProperty("--i", Math.min(i, 12)); n.classList.add("enter"); }); }
+function stagger(nodes) { if (reduced) return; [...nodes].forEach((n, i) => { if (i > 8) return; n.style.setProperty("--i", i); n.classList.add("enter"); }); }
 function zap() { replay(document.querySelector(".brand"), "zap"); }
 
 /* ---------- preview animations (cutforge/previews.py): small looping MP4 + poster per effect and camera motion ----------
@@ -509,7 +513,10 @@ const pvHtml = (kind, x) => (x && x.preview ? `<video class="pv" muted loop play
    background or a decoder fails) - resumes them, reloads one that errored or hangs, restarts all when shown again. */
 const pvShown = new Set(), pvProgress = new WeakMap();
 const pvPlay = (v) => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+let pvMoving = false, pvSheet = false;     // a sheet slides / is open: decoders stay free for the animation
+const pvAllowed = (v) => !pvMoving && !(pvSheet && !v.closest(".sheet"));
 function pvRevive(v) {
+  if (!pvAllowed(v)) { if (!v.paused) v.pause(); return; }
   if (v.error) { pvProgress.delete(v); v.load(); pvPlay(v); return; }
   if (v.paused || v.ended) { if (v.ended) v.currentTime = 0; pvPlay(v); return; }
   const last = pvProgress.get(v) || [-1, Date.now()];
@@ -528,6 +535,27 @@ if (pvIo) {
   const pvWake = () => { if (!document.hidden) for (const v of pvShown) { pvProgress.delete(v); pvRevive(v); } };
   document.addEventListener("visibilitychange", pvWake);
   window.addEventListener("focus", pvWake);
+}
+let slideTimer = 0;
+function slide(open) {                      // opens/closes the sheet: content first, the move one frame later
+  const sh = document.getElementById("sheet");
+  clearTimeout(slideTimer);
+  pvMoving = true; pvSheet = open;
+  for (const v of pvShown) if (!v.paused) v.pause();
+  document.body.classList.add("moving");
+  if (open) {
+    let gone = false;
+    const go = () => { if (gone || !pvSheet) return; gone = true; sh.classList.add("open"); document.body.classList.add("in-sheet"); };
+    requestAnimationFrame(() => requestAnimationFrame(go));
+    setTimeout(go, 60);                      // a WebView that holds back frames must not keep the sheet shut
+  } else {
+    sh.classList.remove("open"); document.body.classList.remove("in-sheet");
+  }
+  slideTimer = setTimeout(() => {
+    document.body.classList.remove("moving");
+    pvMoving = false;
+    for (const v of pvShown) { pvProgress.delete(v); pvRevive(v); }
+  }, 640);
 }
 function redraw(root, draw) {               // redraws root, but a clip that is still there keeps playing (no restart)
   const old = new Map();
@@ -786,8 +814,7 @@ function showTrip(trip) {
   paintTrip(trip, true);
   stagger(b.querySelectorAll(".sheet-head, #tripLive > *"));
   const sh = document.getElementById("sheet");
-  sh.scrollTop = 0; sh.classList.add("open");
-  document.body.classList.add("in-sheet");
+  sh.scrollTop = 0; slide(true);
   if (inTelegram) { tg.BackButton.show(); try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) { /* older clients */ } }
   updateSend();
 }
@@ -933,8 +960,7 @@ function openMedia(id) {
     + `<div class="duo"><button class="ghost main" data-lib="send">${icon("chat", 16)} An Chat senden</button><button class="ghost danger" data-lib="del">Löschen</button></div>`
     + `<p class="note">Gelöschte Dateien werden auf dem PC in den Ordner „_geloescht“ verschoben und lassen sich wiederherstellen.</p>`;
   const sh = document.getElementById("sheet");
-  sh.scrollTop = 0; sh.classList.add("open");
-  document.body.classList.add("in-sheet");
+  sh.scrollTop = 0; slide(true);
   if (inTelegram) tg.BackButton.show();
   updateSend();
 }
@@ -1196,14 +1222,12 @@ function openSheet(kind, id) {
   sh.scrollTop = 0;
   renderSheet();
   stagger(document.getElementById("sheetBody").querySelectorAll(".sheet-head, .lead, .needs, .picks, .safe, .field, details, .summary"));
-  sh.classList.add("open");
-  document.body.classList.add("in-sheet");
+  slide(true);
   if (inTelegram) { tg.BackButton.show(); try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) { /* older clients */ } }
 }
 function closeSheet() {
   sheet = null;
-  document.getElementById("sheet").classList.remove("open");
-  document.body.classList.remove("in-sheet");
+  slide(false);
   if (inTelegram) { tg.BackButton.hide(); try { tg.enableVerticalSwipes && tg.enableVerticalSwipes(); } catch (e) { /* older clients */ } }
   lastSum = null;
   if (trips.length) syncTrips();
@@ -1432,8 +1456,7 @@ function showCode(code) {
   stagger(document.getElementById("sheetBody").children);
   decode(document.getElementById("code"), code);
   document.getElementById("sheet").scrollTop = 0;
-  document.getElementById("sheet").classList.add("open");
-  document.body.classList.add("in-sheet");
+  slide(true);
   document.getElementById("send").classList.add("hidden");
   document.getElementById("copy").onclick = async () => {
     try { await navigator.clipboard.writeText(code); const c = document.getElementById("copy"); c.textContent = "Kopiert ✓"; c.classList.add("done"); haptic("medium"); }
@@ -1544,16 +1567,20 @@ document.addEventListener("pointerdown", (ev) => {
     if (y0 === null) return;
     dy = Math.max(0, ev.clientY - y0);
     if (!dragging && dy > 6) { dragging = true; sh.classList.add("dragging"); }
-    if (dragging) {
-      sh.style.transform = `translateY(${dy}px)`;
-      const main = document.getElementById("main"), k = Math.min(1, dy / 400);
-      main.style.transition = "none"; main.style.transform = `scale(${0.94 + 0.06 * k})`; main.style.opacity = String(0.4 + 0.6 * k);
-    }
+    if (dragging && !frame) frame = requestAnimationFrame(paint);
   });
+  let frame = 0;
+  const paint = () => {
+    frame = 0;
+    if (!dragging) return;
+    sh.style.transform = `translateY(${dy}px)`;
+    const main = document.getElementById("main"), k = Math.min(1, dy / 400);
+    main.style.transition = "none"; main.style.transform = `scale(${0.94 + 0.06 * k})`; main.style.opacity = String(0.4 + 0.6 * k);
+  };
   const end = () => {
     if (y0 === null) return;
     const speed = dy / Math.max(1, performance.now() - t0), main = document.getElementById("main");
-    y0 = null; sh.classList.remove("dragging"); sh.style.transform = "";
+    y0 = null; if (frame) { cancelAnimationFrame(frame); frame = 0; } sh.classList.remove("dragging"); sh.style.transform = "";
     main.style.transition = ""; main.style.transform = ""; main.style.opacity = "";
     if (dragging) { swallow = true; if (dy > 110 || speed > 0.6) { haptic(); closeSheet(); } }
     dragging = false;
